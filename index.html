@@ -10,211 +10,307 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
-:root {
-    --bg-main:#05070d;
-    --bg-panel:#0b0f17;
-    --bg-elevated:#111827;
-    --border-subtle:#1f2937;
-    --border-strong:#334155;
-    --accent-cyan:#22d3ee;
-    --accent-purple:#8b5cf6;
-    --text-primary:#f1f5f9;
-    --text-muted:#64748b;
+:root{
+--bg-main:#05070d;
+--bg-panel:#0b0f17;
+--bg-disc:#0f172a;
+--bg-content:#111827;
+--bg-rev:#0b1220;
+--border-subtle:#1f2937;
+--border-strong:#334155;
+--accent:#22d3ee;
+--danger:#ef4444;
+--warning:#f97316;
+--success:#22c55e;
+--text:#f1f5f9;
+--muted:#64748b;
 }
 
-*{box-sizing:border-box}
-
 body{
-    font-family:'Inter',sans-serif;
-    background:radial-gradient(circle at 20% 20%, #0f172a 0%, #05070d 60%);
-    color:var(--text-primary);
-    min-height:100vh;
+background:radial-gradient(circle at 30% 20%,#0f172a 0%,#05070d 70%);
+color:var(--text);
+font-family:'Inter',sans-serif;
+min-height:100vh;
 }
 
 .glass-panel{
-    background:var(--bg-panel);
-    border:1px solid var(--border-subtle);
-    border-radius:10px;
-    box-shadow:
-        0 0 0 1px rgba(255,255,255,0.02),
-        0 20px 40px rgba(0,0,0,0.6);
+background:var(--bg-panel);
+border:1px solid var(--border-subtle);
+border-radius:10px;
+box-shadow:0 20px 40px rgba(0,0,0,.6);
+transition:.2s ease;
 }
 
-nav.glass-panel{
-    background:rgba(11,15,23,0.95);
-    border:1px solid var(--border-strong);
-}
-
-.nav-container{
-    background:#0b0f17;
-    border:1px solid var(--border-subtle);
-    padding:4px;
-    border-radius:8px;
-    display:flex;
-    gap:4px;
-}
-
-.nav-btn{
-    background:transparent;
-    color:var(--text-muted);
-    padding:8px 22px;
-    font-size:.75rem;
-    font-weight:700;
-    font-family:'JetBrains Mono',monospace;
-    border-radius:6px;
-    border:1px solid transparent;
-    cursor:pointer;
-    transition:.2s;
-}
-
-.nav-btn:hover{
-    background:#111827;
-    color:white;
-}
-
-.nav-btn.active{
-    background:#111827;
-    color:var(--accent-cyan);
-    border:1px solid var(--accent-cyan);
-    box-shadow:0 0 15px rgba(34,211,238,.25);
+.glass-panel:hover{
+border-color:var(--border-strong);
 }
 
 .tabela-ciclo{
-    width:100%;
-    border-collapse:separate;
-    border-spacing:0;
+width:100%;
+border-collapse:separate;
+border-spacing:0;
 }
 
 .tabela-ciclo th{
-    position:sticky;
-    top:0;
-    background:#0b0f17;
-    color:var(--text-muted);
-    padding:12px 8px;
-    font-size:.65rem;
-    text-transform:uppercase;
-    letter-spacing:.08em;
-    border-bottom:1px solid var(--border-strong);
-    font-family:'JetBrains Mono';
-}
-
-.tabela-ciclo td{
-    padding:8px;
-    border-bottom:1px solid var(--border-subtle);
-    background:#0f1623;
+position:sticky;
+top:0;
+background:#0b0f17;
+color:var(--muted);
+padding:12px 8px;
+font-size:.65rem;
+text-transform:uppercase;
+border-bottom:1px solid var(--border-strong);
+font-family:'JetBrains Mono';
 }
 
 .disciplina-row td{
-    background:#111827;
-    font-weight:600;
-    border-top:1px solid var(--border-strong);
+background:var(--bg-disc);
+font-weight:700;
+border-top:1px solid var(--border-strong);
+}
+
+.conteudo-row td{
+background:var(--bg-content);
+border-bottom:1px solid var(--border-subtle);
+transition:background .15s ease;
+}
+
+.conteudo-row:hover td{
+background:#162033;
+}
+
+.revision-cell{
+background:var(--bg-rev);
 }
 
 .input-tech,
 .input-number-tech{
-    width:100%;
-    border-radius:6px;
-    padding:6px 8px;
-    font-size:.85rem;
-    transition:.2s;
-}
-
-.input-tech:read-only,
-.input-number-tech:read-only{
-    background:transparent;
-    border:1px solid transparent;
-    color:var(--text-muted);
+width:100%;
+background:transparent;
+border:1px solid transparent;
+color:var(--muted);
+border-radius:6px;
+padding:6px;
+transition:.2s ease;
 }
 
 .input-tech:not(:read-only),
 .input-number-tech:not(:read-only){
-    background:#0b0f17;
-    border:1px solid var(--accent-cyan);
-    color:white;
-    box-shadow:0 0 0 1px rgba(34,211,238,.3);
+border:1px solid var(--accent);
+background:#0b0f17;
+color:white;
 }
 
 .btn-tech{
-    padding:8px 14px;
-    border-radius:6px;
-    font-size:.75rem;
-    font-weight:600;
-    background:#111827;
-    border:1px solid var(--border-subtle);
-    color:white;
-    cursor:pointer;
-    transition:.2s;
+background:#111827;
+border:1px solid var(--border-subtle);
+padding:8px 14px;
+border-radius:6px;
+transition:.2s ease;
 }
 
 .btn-tech:hover{
-    background:#1f2937;
+background:#1f2937;
 }
 
 .btn-primary-tech{
-    background:linear-gradient(135deg,#0ea5e9 0%,#6366f1 100%);
-    border:none;
-    color:white;
-    box-shadow:0 6px 20px rgba(99,102,241,.4);
+background:linear-gradient(135deg,#0ea5e9,#6366f1);
+box-shadow:0 0 20px rgba(99,102,241,.4);
 }
 
 .btn-primary-tech:hover{
-    transform:translateY(-2px);
+transform:translateY(-2px);
 }
 
-.autosave-dot{
-    box-shadow:0 0 8px currentColor;
+.high-risk{
+box-shadow:0 0 12px rgba(239,68,68,.6);
+border-left:4px solid var(--danger);
 }
+
+.trend-up{color:var(--success)}
+.trend-down{color:var(--danger)}
+.trend-neutral{color:var(--muted)}
+
+.autosave-dot{box-shadow:0 0 8px currentColor}
 </style>
 </head>
-
 <body>
 
 <nav class="glass-panel mx-auto max-w-[95%] my-6 px-8 py-4 flex justify-between items-center">
-    <h1 class="text-2xl font-bold tracking-tight">
-        NeuroAI <span style="color:var(--accent-cyan)">Study</span>
-    </h1>
-
-    <div class="nav-container">
-        <button id="tab-dashboard" class="nav-btn active">Visão Geral</button>
-        <button id="tab-cycle" class="nav-btn">Ciclo</button>
-    </div>
+<h1 class="text-2xl font-bold">NeuroAI <span style="color:var(--accent)">Study</span></h1>
+<button onclick="calcSmartCycle()" class="btn-tech btn-primary-tech">Algoritmo Inteligente</button>
 </nav>
 
 <main class="max-w-[95%] mx-auto pb-12">
 
 <div class="glass-panel p-6 mb-6">
-    <h2 class="text-sm uppercase tracking-widest text-slate-400 font-mono">Dashboard</h2>
-    <div class="h-64 mt-4">
-        <canvas id="radarChart"></canvas>
-    </div>
+<h2 class="text-sm uppercase tracking-widest text-slate-400 font-mono">Dashboard</h2>
+<div class="grid grid-cols-4 gap-6 mt-4">
+<div>
+<div class="text-xs text-slate-400">Performance</div>
+<div id="kpi-perf" class="text-3xl font-black">0%</div>
+</div>
+<div>
+<div class="text-xs text-slate-400">Questões</div>
+<div id="kpi-total" class="text-3xl font-black">0</div>
+</div>
+<div>
+<div class="text-xs text-slate-400">Revisões Atrasadas</div>
+<div id="kpi-rev" class="text-3xl font-black">0</div>
+</div>
+<div>
+<div class="text-xs text-slate-400">Meta Dinâmica</div>
+<div id="kpi-meta" class="text-3xl font-black">0h</div>
+</div>
+</div>
 </div>
 
 <div class="glass-panel overflow-x-auto">
-    <table class="tabela-ciclo">
-        <thead>
-        <tr>
-            <th>Disciplina</th>
-            <th>Qtd</th>
-            <th>Acertos</th>
-            <th>%</th>
-        </tr>
-        </thead>
-        <tbody id="table-body"></tbody>
-    </table>
+<table class="tabela-ciclo">
+<thead>
+<tr>
+<th>Disciplina</th>
+<th>Qtd</th>
+<th>Acertos</th>
+<th>%</th>
+<th>Tendência</th>
+</tr>
+</thead>
+<tbody id="table-body"></tbody>
+</table>
 </div>
 
 </main>
 
 <script>
-/* 
-⚠️ Toda a lógica original do seu sistema
-(Firebase, renderTable, updateStats, etc)
-permanece exatamente igual.
+"use strict";
 
-Cole aqui abaixo TODO o bloco <script> original
-que você já tinha.
-Nenhuma alteração é necessária na parte JS.
-*/
+window.appData = window.appData || [];
+
+function calculatePerf(ex,ac){
+return ex>0?(ac/ex):0;
+}
+
+function perfColor(val){
+let hue = val*120;
+return `hsl(${hue},80%,50%)`;
+}
+
+function calcTrend(basePerf, revPerf){
+if(revPerf>basePerf+0.05)return "up";
+if(revPerf<basePerf-0.05)return "down";
+return "neutral";
+}
+
+function calcSmartScore(c,d){
+let perf = calculatePerf(c.ex,c.ac)*100;
+let days = c.date? ( (new Date()-new Date(c.date))/(1000*60*60*24) ):30;
+let score = (100-perf)*d.weight*Math.log(days+1);
+return score;
+}
+
+window.renderTable=function(){
+const tbody=document.getElementById("table-body");
+tbody.innerHTML="";
+let worstPerf=1;
+
+window.appData.forEach(d=>{
+let discEx=0,discAc=0;
+
+d.contents.forEach(c=>{
+discEx+=c.ex||0;
+discAc+=c.ac||0;
+});
+
+let discPerf=calculatePerf(discEx,discAc);
+if(discPerf<worstPerf)worstPerf=discPerf;
+});
+
+window.appData.forEach(d=>{
+let discEx=0,discAc=0;
+
+d.contents.forEach(c=>{
+discEx+=c.ex||0;
+discAc+=c.ac||0;
+});
+
+let discPerf=calculatePerf(discEx,discAc);
+
+let tr=document.createElement("tr");
+tr.className="disciplina-row";
+tr.innerHTML=`
+<td>${d.name}</td>
+<td>${discEx}</td>
+<td>${discAc}</td>
+<td style="color:${perfColor(discPerf)}">${(discPerf*100).toFixed(0)}%</td>
+<td></td>
+`;
+tbody.appendChild(tr);
+
+d.contents.forEach(c=>{
+let perf=calculatePerf(c.ex,c.ac);
+let revPerf = (c.revAc?.reduce((a,b)=>a+b,0)||0)/(c.revEx?.reduce((a,b)=>a+b,1)||1);
+let trend=calcTrend(perf,revPerf);
+
+let row=document.createElement("tr");
+row.className="conteudo-row";
+
+let risk=false;
+if(perf<0.6)risk=true;
+if((c.revs||[]).filter(r=>!r).length>=3)risk=true;
+
+if(risk)row.classList.add("high-risk");
+
+row.innerHTML=`
+<td>— ${c.name}</td>
+<td>${c.ex||0}</td>
+<td>${c.ac||0}</td>
+<td style="color:${perfColor(perf)}">${(perf*100).toFixed(0)}%</td>
+<td class="trend-${trend}">
+${trend==="up"?"↑":trend==="down"?"↓":"•"}
+</td>
+`;
+
+tbody.appendChild(row);
+});
+});
+
+updateStats();
+};
+
+function updateStats(){
+let tot=0,ac=0,rev=0;
+
+window.appData.forEach(d=>{
+d.contents.forEach(c=>{
+tot+=c.ex||0;
+ac+=c.ac||0;
+if((c.revs||[]).filter(r=>!r).length>=1)rev++;
+});
+});
+
+document.getElementById("kpi-total").innerText=tot;
+document.getElementById("kpi-perf").innerText=tot>0?((ac/tot)*100).toFixed(0)+"%":"0%";
+document.getElementById("kpi-rev").innerText=rev;
+
+let weekly=Math.round(tot/4);
+document.getElementById("kpi-meta").innerText=weekly+"h";
+}
+
+window.calcSmartCycle=function(){
+let list=[];
+window.appData.forEach(d=>{
+d.contents.forEach(c=>{
+list.push({name:c.name,disc:d.name,score:calcSmartScore(c,d)});
+});
+});
+list.sort((a,b)=>b.score-a.score);
+alert("Top prioridade: "+list[0]?.name);
+};
+
+window.onload=function(){
+renderTable();
+};
 </script>
 
 </body>
