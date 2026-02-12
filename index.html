@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>NeuroAI Study · Fiscal</title>
+    <title>NeuroStudy AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Firebase Imports (Módulos ES) -->
+    <!-- Firebase Imports -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuração Global e Inicialização (SEU PROJETO)
         const firebaseConfig = {
           apiKey: "AIzaSyB49R1ZycEX_4Q6vzaM7wNYdi5qf3Zfm2M",
           authDomain: "neuroai-study-3a97b.firebaseapp.com",
@@ -28,58 +28,43 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
-        
         const appId = 'neuro-fiscal-app'; 
         let userId = null;
 
-        // Expondo funções para o HTML
         window.firebaseApp = { 
             login: async () => {
-                try {
-                    await signInWithPopup(auth, provider);
-                } catch (error) {
-                    console.error("Erro no login:", error);
-                    alert("Erro ao logar: " + error.message);
-                }
+                try { await signInWithPopup(auth, provider); } 
+                catch (error) { alert("Erro ao logar: " + error.message); }
             },
             logout: async () => {
-                try {
-                    await signOut(auth);
-                    window.location.reload(); 
-                } catch (error) {
-                    console.error("Erro ao sair:", error);
-                }
+                try { await signOut(auth); window.location.reload(); } 
+                catch (error) { console.error("Erro ao sair:", error); }
             }
         };
 
-        // Listener de Estado da Autenticação
         onAuthStateChanged(auth, (user) => {
-            const loginBtn = document.getElementById('btn-login-google');
-            const userProfile = document.getElementById('user-profile-area');
+            const loginBtn = document.getElementById('btn-login');
+            const userProfile = document.getElementById('user-profile');
             const userImg = document.getElementById('user-avatar');
             
             if (user) {
                 userId = user.uid;
                 window.userId = userId;
-                
-                if(loginBtn) loginBtn.classList.add('hidden');
-                if(userProfile) userProfile.classList.remove('hidden');
+                if(loginBtn) loginBtn.style.display = 'none';
+                if(userProfile) userProfile.style.display = 'flex';
                 if(userImg) userImg.src = user.photoURL || '';
-                
                 updateSyncStatus('online');
                 setupRealtimeListener();
             } else {
-                if(loginBtn) loginBtn.classList.remove('hidden');
-                if(userProfile) userProfile.classList.add('hidden');
+                if(loginBtn) loginBtn.style.display = 'flex';
+                if(userProfile) userProfile.style.display = 'none';
                 updateSyncStatus('offline');
             }
         });
 
-        // Listener de Dados em Tempo Real (Sincronização)
         function setupRealtimeListener() {
             if (!userId) return;
             const docRef = doc(db, 'artifacts', appId, 'users', userId, 'data', 'study_cycle');
-            
             onSnapshot(docRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
@@ -88,24 +73,15 @@
                             window.appData = JSON.parse(data.payload);
                             window.renderTable(window.isFilterTodayActive, true); 
                             window.updateStats();
-                        } catch (e) { console.error("Erro ao processar dados da nuvem", e); }
+                        } catch (e) { console.error("Erro dados", e); }
                     }
-                } else {
-                    window.saveData(true);
-                }
-            }, (error) => {
-                console.error("Erro de sincronização:", error);
-                updateSyncStatus('error');
-            });
+                } else { window.saveData(true); }
+            }, (error) => updateSyncStatus('error'));
         }
 
-        // Função de Salvamento na Nuvem
         window.saveData = async function(force = false) {
+            try { localStorage.setItem('neuro_fiscal_pro_v6', JSON.stringify(window.appData)); } catch(e) {}
             if (!userId) return;
-            
-            const indicator = document.querySelector('.autosave-dot');
-            if (indicator) indicator.classList.add('animate-ping');
-
             const docRef = doc(db, 'artifacts', appId, 'users', userId, 'data', 'study_cycle');
             try {
                 await setDoc(docRef, { 
@@ -113,409 +89,449 @@
                     lastUpdate: new Date().toISOString(),
                     userEmail: auth.currentUser.email
                 });
-                
-                if (indicator) {
-                    setTimeout(() => indicator.classList.remove('animate-ping'), 500);
-                }
-            } catch (e) {
-                console.error("Erro ao salvar na nuvem:", e);
-            }
+            } catch (e) { console.error("Erro save", e); }
             window.updateStats();
         };
 
         function updateSyncStatus(status) {
-            const el = document.getElementById('sync-status-text');
-            const dot = document.querySelector('.autosave-dot');
-            if (!el || !dot) return;
-
+            const dot = document.getElementById('status-dot');
+            const text = document.getElementById('status-text');
+            if (!dot || !text) return;
             if (status === 'online') {
-                el.innerText = 'ONLINE';
-                el.classList.add('text-emerald-400');
-                dot.classList.add('bg-emerald-500');
-                dot.classList.remove('bg-yellow-500', 'bg-red-500');
-            } else if (status === 'error') {
-                el.innerText = 'ERRO';
-                dot.classList.add('bg-red-500');
+                text.innerText = 'Online';
+                text.style.color = '#10b981';
+                dot.style.background = '#10b981';
             } else {
-                el.innerText = 'OFFLINE';
-                dot.classList.add('bg-yellow-500');
-                dot.classList.remove('bg-emerald-500');
+                text.innerText = 'Offline';
+                text.style.color = '#64748b';
+                dot.style.background = '#64748b';
             }
         }
     </script>
 
     <style>
-        /* --- ESTILO TECH ISOMETRIC DARK v5.2 --- */
         :root {
-            --primary-cyan: #22d3ee;
-            --primary-blue: #3b82f6;
-            --bg-dark: #020617; /* Slate 950 */
-            --panel-bg: #0f172a; /* Slate 900 */
-            --border-tech: #1e293b; /* Slate 800 */
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            /* Palette Clean Dark v2 */
+            --bg-body: #0b0e14;       
+            --bg-sidebar: #0f1218;    
+            --bg-card: #151a23;       
+            --bg-hover: #1c222e;      
+            --border: #252b36;        
+            
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af; 
+            --text-tertiary: #64748b;
+            
+            --accent-blue: #3b82f6; 
+            --accent-green: #10b981;
+            --accent-purple: #8b5cf6;
         }
 
         * { box-sizing: border-box; }
         
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-dark);
-            /* Grid Isométrico Sutil */
-            background-image: 
-                linear-gradient(30deg, #111827 12%, transparent 12.5%, transparent 87%, #111827 87.5%, #111827),
-                linear-gradient(150deg, #111827 12%, transparent 12.5%, transparent 87%, #111827 87.5%, #111827),
-                linear-gradient(30deg, #111827 12%, transparent 12.5%, transparent 87%, #111827 87.5%, #111827),
-                linear-gradient(150deg, #111827 12%, transparent 12.5%, transparent 87%, #111827 87.5%, #111827),
-                linear-gradient(60deg, #1e293b77 25%, transparent 25.5%, transparent 75%, #1e293b77 75%, #1e293b77),
-                linear-gradient(60deg, #1e293b77 25%, transparent 25.5%, transparent 75%, #1e293b77 75%, #1e293b77);
-            background-size: 80px 140px;
-            background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
-            color: var(--text-main);
-            -webkit-font-smoothing: antialiased;
-            min-height: 100vh;
-        }
-
-        /* Painéis Tech */
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-tech);
-            border-radius: 8px;
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8);
-        }
-
-        /* --- LOGO ESTILIZADA --- */
-        .brain-network-logo {
-            filter: drop-shadow(0 0 12px rgba(34, 211, 238, 0.3));
-            transition: all 0.3s ease;
-        }
-        .brain-network-logo:hover {
-            filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.6));
-            transform: scale(1.02);
-        }
-
-        /* --- BOTÕES DE NAVEGAÇÃO --- */
-        .nav-container {
-            background: #0f172a;
-            border: 1px solid #334155;
-            padding: 4px;
-            border-radius: 8px;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            margin: 0;
             display: flex;
-            gap: 4px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
-        }
-
-        .nav-btn {
-            position: relative;
-            background: transparent;
-            color: #64748b;
-            padding: 8px 24px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            font-family: 'JetBrains Mono', monospace;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border: 1px solid transparent;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 100vh;
             overflow: hidden;
         }
 
-        .nav-btn:hover { color: #cbd5e1; background: rgba(255,255,255,0.03); }
-
-        .nav-btn.active {
-            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-            color: #38bdf8;
-            border: 1px solid #38bdf8;
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.15), inset 0 1px 0 rgba(255,255,255,0.1);
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 250px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            flex-shrink: 0;
         }
 
-        /* --- TABELA --- */
-        .tabela-ciclo { width: 100%; border-collapse: separate; border-spacing: 0; }
-        
-        .tabela-ciclo th {
-            position: sticky; top: 0;
-            background: #0f172a;
-            color: #94a3b8;
-            padding: 14px 10px;
-            font-size: 0.65rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.08em;
-            border-bottom: 2px solid #334155;
-            z-index: 20;
-            font-family: 'JetBrains Mono';
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 40px;
         }
 
-        .tabela-ciclo td {
-            padding: 10px;
-            vertical-align: middle;
-            border-bottom: 1px solid #1e293b;
-            background: rgba(15, 23, 42, 0.6);
-        }
-
-        .rev-header-group {
-            border-top: 3px solid transparent;
-            background: linear-gradient(to bottom, rgba(30, 41, 59, 0.5), transparent);
-        }
-        
-        .disciplina-row td {
-            background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%);
-            border-top: 1px solid #475569;
-            color: #fff;
-            padding: 16px 12px;
-        }
-
-        /* Inputs - ESTADO READONLY VS EDITAVEL */
-        .input-tech {
-            width: 100%;
-            border-radius: 4px;
-            padding: 6px 10px;
-            font-size: 0.85rem;
-            outline: none;
-            transition: 0.2s;
-            font-family: 'Inter';
-        }
-        
-        /* Estado Padrão (Bloqueado) */
-        .input-tech:read-only, .input-number-tech:read-only {
-            background: transparent;
-            border: 1px solid transparent;
-            color: #94a3b8; /* Muted */
-            cursor: default;
-        }
-        
-        .disciplina-row .input-tech:read-only {
-            color: white; /* Header needs white */
-        }
-
-        /* Estado Editável (Após Duplo Clique) */
-        .input-tech:not(:read-only), .input-number-tech:not(:read-only) {
-            background: #020617;
-            border: 1px solid var(--primary-cyan);
-            color: #fff;
-            box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.3);
-            cursor: text;
-        }
-
-        .input-number-tech {
-            width: 100%; height: 32px;
-            border-radius: 4px;
-            text-align: center;
-            font-family: 'JetBrains Mono';
+        .nav-section-title {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+            margin-top: 16px;
             font-weight: 600;
         }
 
-        /* Link Display (View Mode) */
-        .link-view {
+        .nav-item {
             display: flex;
             align-items: center;
-            gap: 6px;
-            color: #38bdf8;
-            font-size: 0.75rem;
-            text-decoration: none;
-            padding: 6px 10px;
-            border-radius: 4px;
-            transition: background 0.2s;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
             cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 2px;
+        }
+
+        .nav-item:hover {
+            background-color: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background-color: #1e2532;
+            color: var(--text-primary);
+            border-left: 3px solid var(--accent-blue);
+        }
+
+        .status-area {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+            background-color: var(--bg-body);
+        }
+
+        /* --- CARDS & PANELS --- */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .kpi-card {
+            background-color: var(--bg-card);
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100px;
+        }
+
+        .kpi-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .kpi-value {
+            font-size: 2.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        /* --- TABLE STYLE (CLEAN) --- */
+        .table-container {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow-x: auto;
+            background-color: var(--bg-card);
+        }
+
+        table {
             width: 100%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .link-view:hover {
-            background: rgba(56, 189, 248, 0.1);
-            text-decoration: underline;
-        }
-        .link-view-empty {
-            color: #475569;
-            font-style: italic;
-            cursor: default;
+            border-collapse: collapse;
+            min-width: 1000px;
         }
 
-        /* Badges */
-        .relevancia-badge {
-            background: #1e293b;
-            border: 1px solid #475569;
+        th {
+            background-color: #1a1f29;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+            padding: 14px 10px;
+            border-bottom: 1px solid var(--border);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        th.text-left { text-align: left; }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+
+        /* Linhas */
+        .tr-disciplina td {
+            background-color: #12161d;
+            font-weight: 600;
+            font-size: 1rem;
+            color: #fff;
+            padding-top: 18px;
+            padding-bottom: 18px;
+        }
+
+        .tr-conteudo td { background-color: var(--bg-card); }
+        .tr-conteudo:hover td { background-color: var(--bg-hover); }
+
+        /* Inputs Clean */
+        .input-clean {
+            background: transparent;
+            border: 1px solid transparent;
+            color: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+            padding: 6px 8px;
             border-radius: 4px;
-            padding: 3px 8px;
-            font-size: 0.75rem; font-weight: 700;
-            color: #e2e8f0; font-family: 'JetBrains Mono';
+            width: 100%;
+            outline: none;
+            transition: 0.2s;
+        }
+        
+        .input-clean:hover { background-color: rgba(255,255,255,0.05); }
+        
+        .input-clean:focus {
+            background-color: #0b0e14;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 1px var(--accent-blue);
         }
 
-        /* Status Dots */
-        .rev-status {
-            width: 22px; height: 22px;
-            border-radius: 4px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.65rem; font-weight: 900;
-            cursor: pointer; transition: 0.2s;
+        /* Mini Inputs for Reviews */
+        .input-mini {
+            width: 32px; height: 26px; font-size: 0.7rem; text-align: center;
+            background: #11141d; border: 1px solid #30363d; color: #d1d5db;
+            border-radius: 4px; outline: none; transition: 0.15s;
         }
-        .rev-done-tech { background: #0d9488; color: #ccfbf1; border: 1px solid #14b8a6; }
-        .rev-pending-tech { background: #be123c; color: #ffe4e6; border: 1px solid #f43f5e; animation: pulse 2s infinite; }
-        .rev-today-tech { background: #db2777; color: #fff; border: 1px solid #f9a8d4; }
+        .input-mini:focus { border-color: var(--accent-blue); background: #0b0e14; color: white; }
 
-        /* Checkbox Tech */
-        .checkbox-tech {
+        /* Checkbox */
+        .checkbox-clean {
             appearance: none;
-            background: #020617;
             width: 18px; height: 18px;
-            border: 2px solid #475569;
+            border: 2px solid #4b5563;
             border-radius: 4px;
+            background: transparent;
             cursor: pointer;
             position: relative;
         }
-        .checkbox-tech:checked { background: #0891b2; border-color: #22d3ee; }
-        .checkbox-tech:checked::after {
-            content: '✔'; position: absolute;
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: white; font-size: 10px;
+        .checkbox-clean:checked {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+        .checkbox-clean:checked::after {
+            content: '✓'; color: white; font-size: 12px;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         }
 
-        /* Botões Ação */
-        .btn-tech {
-            padding: 8px 16px; border-radius: 6px;
-            font-size: 0.75rem; font-weight: 600;
-            background: #1e293b; border: 1px solid #334155;
-            color: #cbd5e1; cursor: pointer; transition: 0.2s;
-            display: inline-flex; align-items: center; gap: 8px;
+        /* Status Dot */
+        .status-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #2d3442; margin: 0 auto;
         }
-        .btn-tech:hover { background: #334155; color: white; border-color: #64748b; }
-        .btn-primary-tech { 
-            background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
-            border: 1px solid #06b6d4; color: white;
-            box-shadow: 0 4px 12px rgba(8, 145, 178, 0.4);
-        }
-        .btn-primary-tech:hover { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
+        .status-dot.done { background: var(--accent-green); box-shadow: 0 0 6px rgba(16,185,129,0.3); }
+        .status-dot.pending { background: #ef4444; box-shadow: 0 0 6px rgba(239,68,68,0.3); }
+        .status-dot.today { background: #f59e0b; box-shadow: 0 0 6px rgba(245,158,11,0.3); }
 
-        @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(244,63,94,0.4);} 70% {box-shadow: 0 0 0 4px rgba(244,63,94,0);} 100% {box-shadow: 0 0 0 0 rgba(244,63,94,0);} }
+        /* Buttons */
+        .btn {
+            padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 500;
+            cursor: pointer; border: 1px solid transparent; transition: 0.2s;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-primary { background-color: var(--accent-blue); color: white; }
+        .btn-primary:hover { background-color: #2563eb; }
+        
+        .btn-secondary { background-color: var(--bg-hover); color: var(--text-primary); border: 1px solid var(--border); }
+        .btn-secondary:hover { border-color: var(--text-secondary); background-color: #2a303e; }
+        
+        .btn-ai {
+            background-color: rgba(139, 92, 246, 0.1); 
+            color: var(--accent-purple); 
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        .btn-ai:hover { 
+            background-color: rgba(139, 92, 246, 0.2); 
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.15);
+        }
+
+        .btn-text { background: transparent; color: var(--accent-blue); padding: 0; font-size: 0.8rem; }
+        .btn-text:hover { text-decoration: underline; }
+        
+        .btn-icon-only {
+            padding: 4px;
+            color: var(--text-secondary);
+            background: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: none;
+        }
+        .btn-icon-only:hover { color: var(--accent-purple); background: var(--bg-hover); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #333b4d; border-radius: 3px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+
+        /* Logo Gradient Text */
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #60a5fa 0%, #34d399 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .border-l-rev { border-left: 1px solid var(--border); }
+        
+        /* Markdown Styles */
+        .markdown-content h1, .markdown-content h2 { font-size: 1.1em; font-weight: bold; color: white; margin-bottom: 0.5em; }
+        .markdown-content ul { list-style: disc; padding-left: 1.5em; margin-bottom: 1em; }
+        .markdown-content li { margin-bottom: 0.3em; }
+        .markdown-content strong { color: var(--accent-blue); }
+        .markdown-content p { margin-bottom: 0.8em; }
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="antialiased">
+<body>
 
-    <!-- Header -->
-    <nav class="sticky top-0 z-50 glass-panel mx-auto max-w-[95%] my-6 px-8 py-4 flex flex-wrap justify-between items-center shadow-2xl">
-        <div class="flex items-center gap-6 group cursor-default">
-            <!-- LOGO: Rede Neural Isométrica -->
-            <div class="brain-network-logo relative w-16 h-16 flex items-center justify-center">
-                <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M50 15 C30 15 15 30 15 50 C15 70 30 85 50 90 C70 85 85 70 85 50 C85 30 70 15 50 15 Z" fill="#1e293b" stroke="#334155" stroke-width="2"/>
-                    <g stroke-linecap="round" stroke-width="1.5">
-                        <path d="M30 35 L50 25 L70 35" stroke="#3b82f6" stroke-opacity="0.8"/>
-                        <path d="M30 35 L25 55 L40 70" stroke="#0ea5e9" stroke-opacity="0.9"/>
-                        <path d="M70 35 L75 55 L60 70" stroke="#0ea5e9" stroke-opacity="0.9"/>
-                        <path d="M50 25 L50 50" stroke="#3b82f6" stroke-opacity="0.6"/>
-                        <path d="M25 55 L50 50 L75 55" stroke="#22d3ee" stroke-opacity="0.8"/>
-                        <path d="M40 70 L50 90 L60 70" stroke="#3b82f6" stroke-opacity="0.8"/>
-                    </g>
-                    <g fill="#e0f2fe">
-                        <circle cx="50" cy="25" r="3" fill="#60a5fa"/>
-                        <circle cx="30" cy="35" r="2.5" />
-                        <circle cx="70" cy="35" r="2.5" />
-                        <circle cx="50" cy="50" r="4" fill="#22d3ee" stroke="#0891b2" stroke-width="1"/>
-                        <circle cx="50" cy="90" r="2" fill="#60a5fa"/>
-                    </g>
-                </svg>
-            </div>
-            
-            <div class="flex flex-col">
-                <h1 class="text-3xl font-extrabold tracking-tight text-white" style="text-shadow: 0 4px 10px rgba(56, 189, 248, 0.2);">
-                    NeuroAI <span class="text-cyan-400">Study</span>
-                </h1>
-                <div class="flex items-center gap-3 mt-1">
-                    <div class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded text-[0.6rem] font-mono text-cyan-500 font-bold uppercase tracking-widest">
-                        v3.1 · Fiscal
-                    </div>
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]"></span>
-                </div>
-            </div>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo-area">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="#3b82f6"/>
+                <path d="M12 6C9 6 7 8 7 11C7 14 9 16 12 16C15 16 17 14 17 11C17 8 15 6 12 6ZM12 14C10.5 14 9.5 13 9.5 11.5C9.5 10 10.5 9 12 9C13.5 9 14.5 10 14.5 11.5C14.5 13 13.5 14 12 14Z" fill="white"/>
+                <circle cx="15.5" cy="9.5" r="1.5" fill="#3b82f6"/>
+                <circle cx="8.5" cy="11.5" r="1.5" fill="#3b82f6"/>
+                <path d="M15.5 9.5 L8.5 11.5" stroke="#3b82f6" stroke-width="1.5"/>
+            </svg>
+            <span class="logo-text">NeuroStudy AI</span>
         </div>
 
-        <div class="flex items-center gap-6">
-            <div class="flex items-center gap-1.5 text-[0.6rem] text-slate-500 font-mono border-r border-slate-800 pr-4">
-                <div class="autosave-dot w-1.5 h-1.5 rounded-full bg-yellow-500 shadow-[0_0_5px_#eab308]"></div>
-                <span class="tracking-widest" id="sync-status-text">OFFLINE</span>
+        <nav class="flex-1">
+            <div class="nav-item active" id="nav-dashboard" onclick="window.switchTab('dashboard')">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                Dashboard
             </div>
+            <div class="nav-item" id="nav-cycle" onclick="window.switchTab('cycle')">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                Estudos
+            </div>
+            
+            <div class="nav-section-title">Análise</div>
+            <div class="nav-item opacity-50 cursor-not-allowed">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                Ranking
+            </div>
+            
+            <div class="nav-section-title">Sistema</div>
+            <div class="nav-item opacity-50 cursor-not-allowed">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                Configurações
+            </div>
+        </nav>
 
-            <!-- LOGIN BUTTON / PROFILE -->
-            <button id="btn-login-google" onclick="window.firebaseApp.login()" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-1.5 px-3 rounded border border-slate-600 transition-colors">
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/></svg>
-                Entrar
+        <div class="status-area">
+            <div id="user-profile" class="flex items-center gap-3 mb-4" style="display: none;">
+                <img id="user-avatar" class="w-8 h-8 rounded-full bg-gray-700 border border-gray-600">
+                <div class="flex flex-col overflow-hidden">
+                    <span class="text-xs text-gray-300 font-medium">Usuário</span>
+                    <button onclick="window.firebaseApp.logout()" class="text-xs text-red-400 hover:text-red-300 text-left">Sair</button>
+                </div>
+            </div>
+            <button id="btn-login" onclick="window.firebaseApp.login()" class="btn btn-primary w-full justify-center mb-4 text-xs font-bold">
+                Entrar com Google
             </button>
-
-            <div id="user-profile-area" class="hidden flex items-center gap-3">
-                <img id="user-avatar" src="" alt="User" class="w-6 h-6 rounded-full border border-slate-600">
-                <button onclick="window.firebaseApp.logout()" class="text-[0.65rem] text-slate-400 hover:text-white uppercase tracking-wider font-bold">Sair</button>
-            </div>
-            
-            <!-- NAV BUTTONS -->
-            <div class="nav-container">
-                <button onclick="window.switchTab('dashboard')" id="tab-dashboard" class="nav-btn active">
-                    Visão Geral
-                </button>
-                <button onclick="window.switchTab('cycle')" id="tab-cycle" class="nav-btn">
-                    Ciclo
-                </button>
+            <div class="flex items-center gap-2">
+                <div id="status-dot" class="w-2 h-2 rounded-full bg-gray-500"></div>
+                <span id="status-text" class="text-xs text-gray-500">Offline</span>
             </div>
         </div>
-    </nav>
+    </aside>
 
-    <main class="max-w-[95%] mx-auto pb-12">
-
+    <!-- MAIN -->
+    <main class="main-content">
+        
         <!-- DASHBOARD -->
-        <div id="view-dashboard" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
-                <!-- KPI Domínio -->
-                <div class="glass-panel p-6 border-b-4 border-b-blue-500 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-blue-500/10 to-transparent"></div>
-                    <div class="text-slate-400 text-[0.65rem] font-bold uppercase tracking-widest mb-2 font-mono">Domínio Global</div>
-                    <div class="flex items-baseline justify-between">
-                        <span class="text-4xl font-black text-white" id="kpi-perf">0%</span>
-                        <div class="text-xs font-bold text-blue-400 bg-blue-950/50 px-2 py-1 rounded border border-blue-500/20">ACERTOS</div>
-                    </div>
+        <div id="view-dashboard">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Dashboard</h2>
+                    <p class="text-sm text-gray-400 mt-1">Visão geral do seu progresso.</p>
                 </div>
-                
-                <!-- KPI Questões -->
-                <div class="glass-panel p-6 border-b-4 border-b-cyan-500 relative overflow-hidden">
-                    <div class="text-slate-400 text-[0.65rem] font-bold uppercase tracking-widest mb-2 font-mono">Volume Total</div>
-                    <div class="flex items-baseline justify-between">
-                        <span class="text-4xl font-black text-cyan-400" id="kpi-total">0</span>
-                        <div class="text-xs font-bold text-cyan-400 bg-cyan-950/50 px-2 py-1 rounded border border-cyan-500/20">QUESTÕES</div>
-                    </div>
-                </div>
+                <!-- NeuroCoach Button -->
+                <button onclick="window.consultCoach()" class="btn btn-secondary text-sm text-purple-400 hover:text-purple-300 border-purple-500/30 hover:border-purple-500/80 gap-2 transition-all">
+                    ✨ NeuroCoach IA
+                </button>
+            </div>
 
-                <!-- KPI Revisões -->
-                <div class="glass-panel p-6 border-b-4 border-b-rose-500 relative overflow-hidden">
-                    <div class="text-slate-400 text-[0.65rem] font-bold uppercase tracking-widest mb-2 font-mono">Agenda Hoje</div>
-                    <div class="flex items-baseline justify-between">
-                        <span class="text-4xl font-black text-rose-500" id="kpi-rev">0</span>
-                        <div class="text-xs font-bold text-rose-400 bg-rose-950/50 px-2 py-1 rounded border border-rose-500/20">PENDENTES</div>
+            <!-- AI Feedback Area -->
+            <div id="coach-feedback" class="card mb-6 hidden border-l-4 border-purple-500 bg-[#151a23] p-6 shadow-lg">
+                <h4 class="text-purple-400 font-bold mb-3 flex items-center gap-2 text-sm uppercase tracking-wide">
+                    🤖 Análise Estratégica
+                </h4>
+                <div id="coach-text" class="text-gray-300 text-sm leading-relaxed markdown-content"></div>
+            </div>
+
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <span class="kpi-label">Ciclos Concluídos</span>
+                    <span class="kpi-value" id="kpi-total">0</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">Desempenho Global</span>
+                    <div class="flex items-end gap-2">
+                        <span class="kpi-value text-blue-400" id="kpi-perf">0%</span>
+                        <span class="text-xs text-gray-500 mb-2">de acertos</span>
                     </div>
                 </div>
-
-                <!-- KPI Meta -->
-                <div class="glass-panel p-6 border-b-4 border-b-emerald-500 relative overflow-hidden">
-                    <div class="text-slate-400 text-[0.65rem] font-bold uppercase tracking-widest mb-2 font-mono">Meta Semanal</div>
-                    <div class="flex items-baseline justify-between">
-                        <span class="text-4xl font-black text-emerald-500">30h</span>
-                        <div class="text-xs font-bold text-emerald-400 bg-emerald-950/50 px-2 py-1 rounded border border-emerald-500/20">LÍQUIDAS</div>
+                <div class="kpi-card">
+                    <span class="kpi-label">Revisões Pendentes</span>
+                    <span class="kpi-value text-red-400" id="kpi-rev">0</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">Progresso Total</span>
+                    <span class="kpi-value text-green-400">76%</span>
+                    <div class="w-full bg-gray-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                        <div class="bg-green-500 h-1.5 rounded-full" style="width: 76%"></div>
                     </div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="glass-panel p-6 border border-slate-800 bg-[#0f172a]/80">
-                    <h3 class="text-slate-200 font-bold mb-6 flex items-center gap-3 text-sm uppercase tracking-widest font-mono">
-                        <span class="w-2 h-2 bg-cyan-500 rotate-45"></span> Domínio por disciplina
-                    </h3>
+                <!-- Ranking -->
+                <div class="card h-96">
+                    <h3 class="text-base font-semibold text-white mb-6">Ranking de Disciplinas</h3>
                     <div class="chart-container h-64">
                         <canvas id="radarChart"></canvas>
                     </div>
                 </div>
-                <div class="glass-panel p-6 border border-slate-800 bg-[#0f172a]/80">
-                    <h3 class="text-slate-200 font-bold mb-6 flex items-center gap-3 text-sm uppercase tracking-widest font-mono">
-                        <span class="w-2 h-2 bg-emerald-500 rotate-45"></span> Constância Diária
-                    </h3>
+
+                <!-- Stats Recentes -->
+                <div class="card h-96">
+                    <h3 class="text-base font-semibold text-white mb-6">Estatísticas Recentes</h3>
                     <div class="chart-container h-64">
                         <canvas id="lineChart"></canvas>
                     </div>
@@ -523,446 +539,433 @@
             </div>
         </div>
 
-        <!-- VIEW CICLO -->
-        <div id="view-cycle" class="hidden space-y-4">
-            
-            <div class="flex items-center justify-between bg-[#0f172a] p-3 rounded-lg border border-slate-800">
-                <div class="flex gap-3">
-                    <button onclick="window.showInlineAddDiscipline()" class="btn-tech btn-primary-tech">
-                        <span class="text-lg leading-none">+</span> Disciplina
-                    </button>
-                    <button onclick="window.filterToday()" id="btn-hoje" class="btn-tech text-orange-400 border-orange-900/50 hover:bg-orange-900/20 hover:border-orange-500/50">
-                        🔥 Hoje
-                    </button>
-                    <button onclick="window.calcSmartCycle()" class="btn-tech text-purple-400 border-purple-900/50 hover:bg-purple-900/20 hover:border-purple-500/50">
-                        🧠 Inteligente
-                    </button>
+        <!-- CYCLE -->
+        <div id="view-cycle" style="display: none;">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Estudos</h2>
+                    <p class="text-sm text-gray-400 mt-1">Gerencie suas disciplinas e revisões.</p>
                 </div>
-                <div class="text-[0.65rem] font-mono text-slate-500 px-3 border-l border-slate-800">
-                    DATABASE: CLOUD
+                <div class="flex gap-3">
+                    <button onclick="window.showInlineAddDiscipline()" class="btn btn-primary">+ Disciplina</button>
+                    <button onclick="window.filterToday()" id="btn-hoje" class="btn btn-secondary">🔥 Hoje</button>
+                    <button onclick="window.calcSmartCycle()" class="btn btn-ai gap-2">
+                        <span>🧠</span> Prioridade IA
+                    </button>
                 </div>
             </div>
 
-            <div id="inline-add-discipline" class="glass-panel p-4 mb-4 hidden flex items-center gap-3 border-l-4 border-l-cyan-500 bg-[#0f172a]">
-                <span class="text-cyan-400 font-bold text-xs uppercase tracking-wider font-mono">Nova Matéria</span>
-                <input type="text" id="new-disc-name" placeholder="Digite o nome..." class="input-tech bg-slate-900 border-slate-700 w-72 focus:border-cyan-500">
-                <select id="new-disc-weight" class="input-tech bg-slate-900 border-slate-700 w-28 focus:border-cyan-500">
+            <!-- Add Form -->
+            <div id="inline-add-discipline" class="card mb-6 hidden flex items-center gap-4 border-l-4 border-blue-500 p-4">
+                <input type="text" id="new-disc-name" placeholder="Nome..." class="input-clean bg-black border border-gray-700 w-64 p-2">
+                <select id="new-disc-weight" class="input-clean bg-black border border-gray-700 w-24 p-2">
                     <option value="1">Peso 1</option>
                     <option value="2">Peso 2</option>
                     <option value="3" selected>Peso 3</option>
                 </select>
-                <button onclick="window.addDisciplineInline()" class="btn-tech bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-500">Salvar</button>
-                <button onclick="window.hideInlineAddDiscipline()" class="btn-tech hover:text-white">Cancelar</button>
+                <button onclick="window.addDisciplineInline()" class="btn btn-primary text-xs">Salvar</button>
+                <button onclick="window.hideInlineAddDiscipline()" class="btn btn-secondary text-xs">Cancelar</button>
             </div>
 
-            <div class="glass-panel overflow-x-auto p-0 border border-slate-800">
-                <table class="tabela-ciclo">
+            <div class="table-container">
+                <table>
                     <thead>
                         <tr>
-                            <th class="w-8"></th>
-                            <th class="min-w-[450px] text-left pl-4">Disciplina / Tópico</th>
-                            <th class="w-24 text-center">Relevância</th>
-                            <th class="w-16 text-center">Peso</th>
-                            <th class="w-28 text-center">Link</th>
-                            <th class="w-16 text-center">Qtd</th>
-                            <th class="w-16 text-center">Acertos</th>
-                            <th class="w-20 text-center text-cyan-400 font-bold">%</th>
-                            <th class="w-20 text-center text-[0.6rem] text-slate-400 font-bold tracking-wider" style="border-right: none;">ESTUDADO</th>
+                            <th style="width: 30px;"></th>
+                            <th class="text-left" style="min-width: 250px;">DISCIPLINA / TÓPICO</th>
+                            <th class="text-center w-20">REL %</th>
+                            <th class="text-center w-16">PESO</th>
+                            <th class="text-center w-20">QTD</th>
+                            <th class="text-center w-20">ACERT</th>
+                            <th class="text-center w-16 text-blue-400 font-bold">%</th>
+                            <th class="text-center w-20">LINK</th>
+                            <th class="text-center w-12">OK</th>
                             
-                            <th class="w-10 text-center rev-header-group" style="border-top-color: #f43f5e;">R1</th>
-                            <th class="w-20 text-center rev-header-group" style="border-top-color: #f43f5e; border-right: 1px solid #334155;">Status</th>
+                            <!-- REVISÕES: 2 Colunas por R -->
+                            <th class="text-center w-8 border-l-rev text-gray-500" title="Status R1">R1</th>
+                            <th class="text-center w-24 text-xs font-normal text-gray-600">Q / A / %</th>
                             
-                            <th class="w-10 text-center rev-header-group" style="border-top-color: #f97316;">R7</th>
-                            <th class="w-20 text-center rev-header-group" style="border-top-color: #f97316; border-right: 1px solid #334155;">Status</th>
+                            <th class="text-center w-8 border-l-rev text-gray-500" title="Status R7">R7</th>
+                            <th class="text-center w-24 text-xs font-normal text-gray-600">Q / A / %</th>
+
+                            <th class="text-center w-8 border-l-rev text-gray-500" title="Status R15">R15</th>
+                            <th class="text-center w-24 text-xs font-normal text-gray-600">Q / A / %</th>
+
+                            <th class="text-center w-8 border-l-rev text-gray-500" title="Status R30">R30</th>
+                            <th class="text-center w-24 text-xs font-normal text-gray-600">Q / A / %</th>
+
+                            <th class="text-center w-8 border-l-rev text-gray-500" title="Status R60">R60</th>
+                            <th class="text-center w-24 text-xs font-normal text-gray-600">Q / A / %</th>
+
+                            <th class="text-center w-8 border-l-rev text-gray-500" title="Status R90">R90</th>
+                            <th class="text-center w-24 text-xs font-normal text-gray-600">Q / A / %</th>
                             
-                            <th class="w-10 text-center rev-header-group" style="border-top-color: #eab308;">R15</th>
-                            <th class="w-20 text-center rev-header-group" style="border-top-color: #eab308; border-right: 1px solid #334155;">Status</th>
-                            
-                            <th class="w-10 text-center rev-header-group" style="border-top-color: #22c55e;">R30</th>
-                            <th class="w-20 text-center rev-header-group" style="border-top-color: #22c55e; border-right: 1px solid #334155;">Status</th>
-                            
-                            <th class="w-10 text-center rev-header-group" style="border-top-color: #06b6d4;">R60</th>
-                            <th class="w-20 text-center rev-header-group" style="border-top-color: #06b6d4; border-right: 1px solid #334155;">Status</th>
-                            
-                            <th class="w-10 text-center rev-header-group" style="border-top-color: #6366f1;">R90</th>
-                            <th class="w-20 text-center rev-header-group" style="border-top-color: #6366f1;">Status</th>
-                            
-                            <th class="w-10"></th>
+                            <th style="width: 40px;"></th>
                         </tr>
                     </thead>
-                    <tbody id="table-body"></tbody>
+                    <tbody id="table-body">
+                        <!-- Rows rendered via JS -->
+                    </tbody>
                 </table>
             </div>
         </div>
+
     </main>
 
-    <!-- Modal Smart -->
-    <div id="smart-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] hidden items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-2xl p-6 relative bg-[#0f172a] border border-slate-700 shadow-2xl">
-            <div class="flex justify-between items-center border-b border-slate-700 pb-4 mb-4">
-                <h3 class="text-lg font-bold text-white flex gap-2 items-center font-mono">
-                    <span class="text-purple-500 text-xl">⚡</span> ALGORITMO INTELIGENTE
-                </h3>
-                <button onclick="window.closeModal()" class="text-slate-500 hover:text-white text-xl">✕</button>
+    <!-- Modal IA -->
+    <div id="smart-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+        <div class="card w-full max-w-2xl bg-[#151a23] border border-gray-700 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-gray-700 pb-4 mb-4">
+                <h3 class="text-lg font-bold text-white flex gap-2 items-center"><span class="text-purple-400">✨</span> Gemini IA</h3>
+                <button onclick="window.closeModal()" class="text-gray-500 hover:text-white">✕</button>
             </div>
-            <div id="smart-content" class="space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scroll"></div>
+            <div id="smart-loading" class="hidden py-12 text-center">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mb-2"></div>
+                <p class="text-purple-400 text-sm">Processando dados com a IA...</p>
+            </div>
+            <div id="smart-content" class="space-y-4 max-h-[60vh] overflow-y-auto markdown-content text-gray-300"></div>
         </div>
     </div>
 
     <script>
         "use strict";
+        const apiKey = ""; // API Key (Set by Environment or manually)
 
-        // Global Variables
         window.appData = [];
         window.isFilterTodayActive = false;
         const charts = {};
-        
-        // Seed Data for new users
-        const SEED_DATA = [
-            {
-                id: 'd1', name: 'Direito Tributário', weight: 3, expanded: true,
-                contents: [
-                    { id: 'c1', name: 'Competência Tributária', cob: 85, ex: 45, ac: 38, date: new Date().toISOString().split('T')[0], revs: [0,0,0,0,0,0], revEx:[15,0,0,0,0,0], revAc:[14,0,0,0,0,0] },
-                    { id: 'c2', name: 'Impostos em Espécie', cob: 90, ex: 30, ac: 15, date: '2023-11-01', link: 'https://www.google.com', revs: [1,0,0,0,0,0], revEx:[10,0,0,0,0,0], revAc:[8,0,0,0,0,0] }
-                ]
-            },
-            {
-                id: 'd2', name: 'Contabilidade Geral', weight: 3, expanded: false,
-                contents: [
-                    { id: 'c3', name: 'CPC 00 - Estrutura Conceitual', cob: 70, ex: 20, ac: 19, date: '2023-10-25', revs: [1,1,1,0,0,0], revEx:[5,5,5,0,0,0], revAc:[5,4,5,0,0,0] }
-                ]
-            }
-        ];
-
-        // ========== RENDER LOGIC ==========
+        const SEED = [{ id: 'd1', name: 'Matemática', weight: 3, expanded: true, contents: [{ id: 'c1', name: 'Álgebra', cob: 50, ex: 10, ac: 8, date: new Date().toISOString().split('T')[0], revs: [0,0,0,0,0,0], revEx:[0,0,0,0,0,0], revAc:[0,0,0,0,0,0] }] }];
         const REVISION_INTERVALS = [1, 7, 15, 30, 60, 90];
 
+        // --- GEMINI API ---
+        async function callGemini(prompt) {
+            // Check if key exists
+            if (!apiKey) {
+                return "⚠️ **Configuração Necessária:** A chave da API do Gemini não foi detectada. Adicione sua chave na variável `apiKey` no código fonte.";
+            }
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                
+                if (!response.ok) throw new Error('Falha na resposta da API');
+                
+                const data = await response.json();
+                return data.candidates?.[0]?.content?.parts?.[0]?.text || "A IA não retornou conteúdo.";
+            } catch (e) { 
+                console.error(e);
+                return "❌ Erro ao conectar com a IA. Verifique sua conexão e chave de API."; 
+            }
+        }
+
+        // 1. NEURO COACH
+        window.consultCoach = async () => {
+            const fb = document.getElementById('coach-feedback');
+            const txt = document.getElementById('coach-text');
+            
+            fb.classList.remove('hidden');
+            txt.innerHTML = '<div class="flex items-center gap-2"><div class="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div> Consultando o Coach...</div>';
+            
+            let totalQ = 0, totalA = 0;
+            window.appData.forEach(d => d.contents.forEach(c => { totalQ += Number(c.ex)||0; totalA += Number(c.ac)||0; }));
+            const acc = totalQ > 0 ? ((totalA/totalQ)*100).toFixed(0) : 0;
+            
+            const prompt = `Atue como um mentor rígido mas motivador para concursos fiscais.
+            O aluno fez ${totalQ} questões com ${acc}% de acerto.
+            Dê: 
+            1) Um diagnóstico curto e direto.
+            2) Uma ação prática imediata (bullet point).
+            Use Markdown.`;
+            
+            const res = await callGemini(prompt);
+            txt.innerHTML = marked.parse(res);
+        }
+        
+        // 2. SMART CYCLE
+        window.calcSmartCycle = async () => {
+             document.getElementById('smart-modal').style.display = 'flex';
+             document.getElementById('smart-loading').style.display = 'block';
+             document.getElementById('smart-content').innerHTML = '';
+             
+             const simplifiedData = window.appData.map(d => ({
+                 n: d.name, w: d.weight,
+                 t: d.contents.map(c => ({ n: c.name, ex: c.ex, ac: c.ac }))
+             }));
+
+             const prompt = `Analise este estudo (JSON): ${JSON.stringify(simplifiedData).substring(0, 1500)}...
+             Sugira 3 prioridades de estudo baseadas em Custo-Benefício (Peso alto + Baixo acerto).
+             Retorne APENAS um JSON: [{"topic": "Tópico", "discipline": "Matéria", "reason": "Motivo curto"}]`;
+
+             try {
+                 const raw = await callGemini(prompt);
+                 // Simple cleanup if AI wraps in markdown block
+                 const clean = raw.replace(/```json/g, '').replace(/```/g, '').trim();
+                 
+                 // Fallback if not JSON
+                 if (!clean.startsWith('[')) throw new Error("Resposta inválida");
+                 
+                 const data = JSON.parse(clean);
+                 
+                 let html = '';
+                 data.forEach((d, i) => {
+                     html += `<div class="p-4 bg-gray-800 rounded-lg border-l-4 border-purple-500 mb-3 hover:bg-gray-750 transition">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-bold text-purple-300 uppercase tracking-wider">${d.discipline}</span>
+                            <span class="text-xs text-gray-500 font-mono">#${i+1}</span>
+                        </div>
+                        <div class="font-bold text-white text-base">${d.topic}</div>
+                        <div class="text-sm text-gray-400 mt-2">💡 ${d.reason}</div>
+                     </div>`;
+                 });
+                 document.getElementById('smart-content').innerHTML = html;
+             } catch(e) { 
+                 document.getElementById('smart-content').innerHTML = marked.parse(await callGemini("Dê 3 dicas gerais de estudo para área fiscal pois não tenho dados suficientes."));
+             }
+             document.getElementById('smart-loading').style.display = 'none';
+        }
+
+        // 3. TOPIC EXPLAINER
+        window.explainTopic = async (topicName, discName) => {
+            document.getElementById('smart-modal').style.display = 'flex';
+            document.getElementById('smart-loading').style.display = 'block';
+            document.getElementById('smart-content').innerHTML = '';
+            
+            const prompt = `Crie um resumo de elite para concurso sobre: "${topicName}" (${discName}).
+            Markdown:
+            ### 📚 Conceito
+            (Resumo em 1 frase)
+            ### ⚠️ O que cai
+            - Ponto 1
+            - Ponto 2
+            ### 💡 Macete
+            (Dica rápida)`;
+            
+            const res = await callGemini(prompt);
+            document.getElementById('smart-loading').style.display = 'none';
+            document.getElementById('smart-content').innerHTML = marked.parse(res);
+        }
+
+        // --- CORE LOGIC (Standard App) ---
         function calculateReviews(dateStr) {
-            if (!dateStr) return Array(REVISION_INTERVALS.length).fill({ date: null, label: '-', shortDate: '-' });
-            const base = new Date(dateStr);
-            base.setHours(0,0,0,0);
-            return REVISION_INTERVALS.map(days => {
-                const d = new Date(base);
-                d.setDate(d.getDate() + days);
-                d.setHours(0,0,0,0);
-                return {
-                    date: d.toISOString().split('T')[0],
-                    shortDate: `${d.getDate()}/${d.getMonth()+1}`,
-                    label: `R${days}`
-                };
+            if (!dateStr) return Array(REVISION_INTERVALS.length).fill({ date: null, isDue: false });
+            const base = new Date(dateStr); base.setHours(0,0,0,0);
+            const today = new Date(); today.setHours(0,0,0,0);
+            return REVISION_INTERVALS.map(d => {
+                const due = new Date(base); due.setDate(due.getDate() + d);
+                return { date: d, isDue: due <= today };
             });
         }
 
-        window.renderTable = function(filterToday = false, fromCloud = false) {
-            if (fromCloud) window.isFilterTodayActive = filterToday;
-            
-            const tbody = document.getElementById('table-body');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            const today = new Date(); today.setHours(0,0,0,0);
-            let rowCount = 0;
+        function getPerfColor(val) {
+            if(val >= 0.85) return 'text-green-400';
+            if(val >= 0.70) return 'text-yellow-400';
+            return 'text-red-400';
+        }
 
+        window.renderTable = function(filterToday = false, fromCloud = false) {
+            if(fromCloud) window.isFilterTodayActive = filterToday;
+            const tbody = document.getElementById('table-body');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            
+            let hasRows = false;
             (window.appData || []).forEach(disc => {
                 if (!filterToday) {
                     const tr = document.createElement('tr');
-                    tr.className = 'disciplina-row';
+                    tr.className = 'tr-disciplina';
                     tr.onclick = () => window.toggleDisc(disc.id);
                     tr.innerHTML = `
-                        <td class="text-center text-slate-500 cursor-pointer hover:text-white font-bold text-lg">${disc.expanded ? '▼' : '▶'}</td>
-                        <td class="font-bold">
-                            <div class="flex flex-col gap-1">
-                                <input readonly ondblclick="this.readOnly=false;this.focus()" onblur="this.readOnly=true" onkeydown="if(event.key==='Enter')this.blur()" class="input-tech text-base font-bold bg-transparent border-transparent text-white" value="${disc.name}" onchange="window.updateDisc('${disc.id}', 'name', this.value)" onclick="event.stopPropagation()">
-                                <button onclick="event.stopPropagation(); window.addContent('${disc.id}')" class="text-xs text-cyan-500 hover:text-cyan-300 text-left pl-2 flex items-center gap-1 transition-colors font-mono uppercase tracking-wide">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                    Adicionar Tópico
-                                </button>
+                        <td class="text-center text-gray-500 cursor-pointer">${disc.expanded ? '▼' : '▶'}</td>
+                        <td>
+                            <div class="flex flex-col">
+                                <input readonly ondblclick="this.readOnly=false;this.focus()" onblur="this.readOnly=true" onkeydown="if(event.key==='Enter')this.blur()" class="input-clean font-bold text-white text-base" value="${disc.name}" onchange="window.updateDisc('${disc.id}', 'name', this.value)" onclick="event.stopPropagation()">
+                                <button onclick="event.stopPropagation(); window.addContent('${disc.id}')" class="btn-text text-left pl-2 text-xs uppercase font-bold tracking-wide">+ Tópico</button>
                             </div>
                         </td>
-                        <td colspan="1"></td>
-                        <td class="align-top pt-4">
-                            <input readonly ondblclick="this.readOnly=false;this.focus()" onblur="this.readOnly=true" onkeydown="if(event.key==='Enter')this.blur()" class="input-number-tech w-12 mx-auto bg-slate-800/50 border-slate-700" type="number" value="${disc.weight}" onchange="window.updateDisc('${disc.id}', 'weight', this.value)" onclick="event.stopPropagation()">
-                        </td>
-                        <td colspan="30"></td>
+                        <td></td>
+                        <td class="text-center"><input class="input-clean text-center w-12 mx-auto text-gray-400" value="${disc.weight}" onchange="window.updateDisc('${disc.id}', 'weight', this.value)" onclick="event.stopPropagation()"></td>
+                        <td colspan="19"></td>
                     `;
                     tbody.appendChild(tr);
                 }
 
                 if (disc.expanded || filterToday) {
                     disc.contents.forEach(cont => {
-                        const revDates = calculateReviews(cont.date);
-                        let showRow = !filterToday;
-                        if (filterToday && cont.date) {
-                            showRow = revDates.some((rd, idx) => !cont.revs[idx] && new Date(rd.date) <= today);
-                        }
+                        const revs = calculateReviews(cont.date);
+                        if(filterToday && (!cont.date || !revs.some((r,i) => !cont.revs[i] && r.isDue))) return;
+                        hasRows = true;
 
-                        if (showRow) {
-                            rowCount++;
-                            const tr = document.createElement('tr');
-                            tr.className = 'conteudo-row';
+                        const tr = document.createElement('tr');
+                        tr.className = 'tr-conteudo';
+                        const perf = cont.ex > 0 ? ((cont.ac/cont.ex)*100).toFixed(0)+'%' : '-';
+                        const perfClass = cont.ex > 0 ? getPerfColor(cont.ac/cont.ex) : 'text-gray-600';
+                        
+                        const linkDisplay = cont.link ? `<a href="${cont.link}" target="_blank" class="text-blue-400 hover:underline text-xs">Link ↗</a>` : '<span class="text-gray-700">-</span>';
+                        const linkInput = `<input class="input-clean text-xs text-blue-400 hidden edit-link" value="${cont.link||''}" onblur="window.saveLink(this, '${disc.id}', '${cont.id}')" placeholder="URL">`;
 
-                            const perfVal = cont.ex > 0 ? (cont.ac / cont.ex) : 0;
-                            let perfColor = 'text-slate-500';
-                            if (cont.ex > 0) {
-                                if (perfVal < 0.7) perfColor = 'text-rose-500';
-                                else if (perfVal <= 0.85) perfColor = 'text-blue-400';
-                                else perfColor = 'text-emerald-400';
+                        let revCells = '';
+                        revs.forEach((r, i) => {
+                            let dot = 'status-dot';
+                            if(cont.date) {
+                                if(cont.revs[i]) dot += ' done';
+                                else if(r.isDue) dot += ' pending';
+                                else dot += ' today';
                             }
-
-                            // --- LINK LOGIC: View vs Edit ---
-                            const linkDisplay = cont.link && cont.link.trim() !== ''
-                                ? `<a href="${cont.link}" target="_blank" onclick="event.stopPropagation()" class="link-view">🔗 <span class="truncate">Link</span></a>`
-                                : `<span class="link-view link-view-empty">--</span>`;
                             
-                            // Using a container to swap
-                            const linkHtml = `
-                                <div class="w-full" ondblclick="window.enableLinkEdit(this)">
-                                    <div class="view-mode">${linkDisplay}</div>
-                                    <input class="edit-mode input-tech text-xs text-cyan-500 hidden" placeholder="Cole a URL..." value="${cont.link || ''}" onblur="window.saveLinkEdit(this, '${disc.id}', '${cont.id}')" onkeydown="if(event.key==='Enter')this.blur()">
-                                </div>
-                            `;
-
-                            let revCells = '';
-                            revDates.forEach((rd, idx) => {
-                                let statusClass = '', statusIcon = '';
-                                if (cont.date) {
-                                    const revDate = new Date(rd.date);
-                                    if (cont.revs[idx]) { statusClass = 'rev-done-tech'; statusIcon = '✓'; }
-                                    else if (revDate < today) { statusClass = 'rev-pending-tech'; }
-                                    else if (revDate.getTime() === today.getTime()) { statusClass = 'rev-today-tech'; }
-                                    else { statusClass = 'bg-slate-800 text-slate-600'; }
-                                } else { statusClass = 'bg-transparent border border-slate-700 opacity-20'; }
-
-                                const tooltip = rd.shortDate !== '-' ? `R${REVISION_INTERVALS[idx]}: ${rd.shortDate}` : `R${REVISION_INTERVALS[idx]}`;
-                                
-                                const rEx = cont.revEx?.[idx] || 0;
-                                const rAc = cont.revAc?.[idx] || 0;
-                                const rPerfVal = rEx > 0 ? (rAc / rEx) : 0;
-                                const rPerfStr = rEx > 0 ? (rPerfVal * 100).toFixed(0) + '%' : '-';
-                                let rPerfColor = 'text-slate-600';
-                                if(rEx > 0) {
-                                    if (rPerfVal < 0.7) rPerfColor = 'text-rose-500';
-                                    else if (rPerfVal <= 0.85) rPerfColor = 'text-blue-400';
-                                    else rPerfColor = 'text-emerald-400';
-                                }
-
-                                const borderRight = 'border-right: 1px solid #334155;';
-
-                                revCells += `
-                                    <td class="text-center align-middle bg-opacity-20">
-                                        <div class="rev-status mx-auto ${statusClass}" title="${tooltip}" onclick="window.toggleRev('${disc.id}', '${cont.id}', ${idx})">
-                                            ${statusIcon}
-                                        </div>
-                                    </td>
-                                    <td class="px-1 text-center align-middle bg-opacity-20" style="${borderRight}">
-                                        <div class="flex flex-col items-center justify-center gap-1">
-                                            <span class="text-xs font-black font-mono ${rPerfColor}">${rPerfStr}</span>
-                                            <div class="flex gap-1 opacity-60 hover:opacity-100 transition-opacity">
-                                                <input readonly ondblclick="this.readOnly=false;this.focus()" onblur="this.readOnly=true" onkeydown="if(event.key==='Enter')this.blur()" class="w-6 h-5 bg-slate-800 text-[0.65rem] text-center text-slate-300 border border-slate-600 rounded focus:border-cyan-500 input-tech" placeholder="Q" type="number" min="0" value="${rEx || ''}" onchange="window.updateRevStats('${disc.id}', '${cont.id}', ${idx}, 'revEx', this.value)">
-                                                <input readonly ondblclick="this.readOnly=false;this.focus()" onblur="this.readOnly=true" onkeydown="if(event.key==='Enter')this.blur()" class="w-6 h-5 bg-slate-800 text-[0.65rem] text-center text-slate-300 border border-slate-600 rounded focus:border-cyan-500 input-tech" placeholder="A" type="number" min="0" value="${rAc || ''}" onchange="window.updateRevStats('${disc.id}', '${cont.id}', ${idx}, 'revAc', this.value)">
-                                            </div>
-                                        </div>
-                                    </td>
-                                `;
-                            });
-
-                            const isChecked = !!cont.date;
-                            const checkboxHtml = `
-                                <div class="flex justify-center items-center h-full">
-                                    <input type="checkbox" class="checkbox-tech" ${isChecked ? 'checked' : ''} onchange="window.toggleDate('${disc.id}', '${cont.id}', this.checked)">
-                                </div>
-                            `;
-
-                            tr.innerHTML = `
-                                <td></td>
-                                <td><input readonly ondblclick="this.readOnly=false;this.focus()" onblur="this.readOnly=true" onkeydown="if(event.key==='Enter')this.blur()" class="input-tech text-slate-300 font-medium" value="${cont.name}" onchange="window.updateContent('${disc.id}', '${cont.id}', 'name', this.value)"></td>
-                                <td class="text-center">
-                                    <input readonly ondblclick="this.readOnly=false;this.focus()" onblur="this.readOnly=true" onkeydown="if(event.key==='Enter')this.blur()" class="input-number-tech w-14 h-8 text-xs bg-slate-800/60" type="number" min="0" max="100" value="${cont.cob || 0}" onchange="window.updateContent('${disc.id}', '${cont.id}', 'cob', this.value)" title="Duplo clique para editar">
+                            const rex = cont.revEx?.[i] || '';
+                            const rac = cont.revAc?.[i] || '';
+                            const rPerc = (rex > 0) ? ((rac/rex)*100).toFixed(0)+'%' : '-';
+                            const rClass = (rex > 0) ? getPerfColor(rac/rex) : 'text-gray-600';
+                            
+                            revCells += `
+                                <td class="text-center border-l-rev">
+                                    <div class="${dot} mb-1" onclick="window.toggleRev('${disc.id}', '${cont.id}', ${i})"></div>
                                 </td>
-                                <td class="text-center text-slate-500 text-xs font-mono font-bold">${disc.weight}</td>
-                                <td>${linkHtml}</td>
-                                <td><input readonly ondblclick="this.readOnly=false;this.focus()" onblur="this.readOnly=true" onkeydown="if(event.key==='Enter')this.blur()" class="input-number-tech w-12 h-8 text-xs bg-slate-800/60" type="number" value="${cont.ex}" onchange="window.updateContent('${disc.id}', '${cont.id}', 'ex', this.value)"></td>
-                                <td><input readonly ondblclick="this.readOnly=false;this.focus()" onblur="this.readOnly=true" onkeydown="if(event.key==='Enter')this.blur()" class="input-number-tech w-12 h-8 text-xs bg-slate-800/60" type="number" value="${cont.ac}" onchange="window.updateContent('${disc.id}', '${cont.id}', 'ac', this.value)"></td>
-                                <td class="text-center font-black font-mono text-base ${perfColor}">${cont.ex > 0 ? (perfVal * 100).toFixed(0)+'%' : '-'}</td>
-                                <td class="text-center align-middle" style="border-right: none;">${checkboxHtml}</td>
-                                ${revCells}
-                                <td class="text-center align-middle pl-2">
-                                    <button class="text-slate-600 hover:text-rose-500 p-2 transition-colors" onclick="window.deleteContent('${disc.id}', '${cont.id}')">✕</button>
+                                <td class="text-center px-1">
+                                    <div class="flex flex-col items-center justify-center gap-1">
+                                        <div class="flex gap-1">
+                                            <input class="input-mini" placeholder="Q" value="${rex}" onchange="window.updateRevStats('${disc.id}', '${cont.id}', ${i}, 'revEx', this.value)">
+                                            <input class="input-mini" placeholder="A" value="${rac}" onchange="window.updateRevStats('${disc.id}', '${cont.id}', ${i}, 'revAc', this.value)">
+                                        </div>
+                                        <span class="text-[0.6rem] font-bold ${rClass}">${rPerc}</span>
+                                    </div>
                                 </td>
                             `;
-                            tbody.appendChild(tr);
-                        }
+                        });
+
+                        tr.innerHTML = `
+                            <td></td>
+                            <td><input readonly ondblclick="this.readOnly=false;this.focus()" onblur="this.readOnly=true" onkeydown="if(event.key==='Enter')this.blur()" class="input-clean text-gray-300" value="${cont.name}" onchange="window.updateContent('${disc.id}', '${cont.id}', 'name', this.value)"></td>
+                            <td class="text-center"><input class="input-clean text-center text-xs" value="${cont.cob||0}" onchange="window.updateContent('${disc.id}', '${cont.id}', 'cob', this.value)"></td>
+                            <td></td>
+                            <td class="text-center"><input class="input-clean text-center text-xs w-12 mx-auto bg-gray-800/50 rounded" value="${cont.ex}" onchange="window.updateContent('${disc.id}', '${cont.id}', 'ex', this.value)"></td>
+                            <td class="text-center"><input class="input-clean text-center text-xs w-12 mx-auto bg-gray-800/50 rounded" value="${cont.ac}" onchange="window.updateContent('${disc.id}', '${cont.id}', 'ac', this.value)"></td>
+                            <td class="text-center font-bold text-xs ${perfClass}">${perf}</td>
+                            <td class="text-center" ondblclick="window.editLink(this)"><div class="view-link">${linkDisplay}</div>${linkInput}</td>
+                            <td class="text-center"><input type="checkbox" class="checkbox-clean" ${cont.date?'checked':''} onchange="window.toggleDate('${disc.id}','${cont.id}',this.checked)"></td>
+                            ${revCells}
+                            <td class="text-center flex items-center justify-center gap-2 pt-3">
+                                <button class="btn-icon-only" onclick="window.explainTopic('${cont.name}', '${disc.name}')" title="Flashcard IA">✨</button>
+                                <button class="text-gray-600 hover:text-red-500" onclick="window.deleteContent('${disc.id}', '${cont.id}')">✕</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
                     });
                 }
             });
-
-            if (filterToday && rowCount === 0) {
-                tbody.innerHTML = '<tr><td colspan="40" class="text-center p-10 text-slate-500 font-mono text-sm uppercase tracking-widest">Nada pendente para hoje</td></tr>';
-            }
+            if(filterToday && !hasRows) tbody.innerHTML = '<tr><td colspan="20" class="text-center py-8 text-gray-500">Nada para hoje.</td></tr>';
         };
 
-        // ========== ACTIONS ==========
-        window.showInlineAddDiscipline = () => document.getElementById('inline-add-discipline').classList.remove('hidden');
-        window.hideInlineAddDiscipline = () => document.getElementById('inline-add-discipline').classList.add('hidden');
-        
-        window.addDisciplineInline = () => {
-            const name = document.getElementById('new-disc-name').value.trim();
-            if (!name) return;
-            const weight = parseInt(document.getElementById('new-disc-weight').value, 10);
-            window.appData.push({ id: 'd'+Date.now(), name, weight, expanded: true, contents: [] });
-            window.saveData();
-            window.renderTable(window.isFilterTodayActive);
-            window.hideInlineAddDiscipline();
-            document.getElementById('new-disc-name').value = '';
-        };
+        // UI & Logic Wrappers
+        window.switchTab = function(tab) {
+            ['dashboard', 'cycle'].forEach(t => {
+                document.getElementById(`view-${t}`).style.display = 'none';
+                document.getElementById(`nav-${t}`).classList.remove('active');
+            });
+            document.getElementById(`view-${tab}`).style.display = 'block';
+            document.getElementById(`nav-${tab}`).classList.add('active');
+            if(tab === 'dashboard') window.updateStats();
+            else window.renderTable(window.isFilterTodayActive);
+        }
 
-        window.filterToday = () => {
-            window.isFilterTodayActive = !window.isFilterTodayActive;
-            const btn = document.getElementById('btn-hoje');
-            if(window.isFilterTodayActive) {
-                btn.classList.add('active');
-                window.renderTable(true);
-            } else {
-                btn.classList.remove('active');
-                window.renderTable(false);
-            }
-        };
-
-        // ========== OPS ==========
         window.toggleDisc = (id) => { let d=window.appData.find(x=>x.id===id); if(d){d.expanded=!d.expanded; window.saveData(); window.renderTable(window.isFilterTodayActive);} };
-        
-        window.updateDisc = (id,f,v) => { let d=window.appData.find(x=>x.id===id); if(d){d[f]=f==='weight'?parseFloat(v):v; window.saveData();} };
-        
+        window.updateDisc = (id,f,v) => { let d=window.appData.find(x=>x.id===id); if(d){d[f]=v; window.saveData();} };
         window.updateContent = (dId,cId,f,v) => { 
             let d=window.appData.find(x=>x.id===dId); if(!d)return;
             let c=d.contents.find(x=>x.id===cId); if(!c)return;
-            if(['name','link'].includes(f)) c[f]=v; else c[f]=parseFloat(v)||0;
+            if(['name','link'].includes(f)) c[f]=v; else c[f]=Number(v)||0;
             window.saveData(); window.renderTable(window.isFilterTodayActive);
         };
-        
         window.toggleDate = (dId,cId,chk) => {
             let d=window.appData.find(x=>x.id===dId); if(!d)return;
             let c=d.contents.find(x=>x.id===cId); if(!c)return;
             c.date = chk ? new Date().toISOString().split('T')[0] : '';
             window.saveData(); window.renderTable(window.isFilterTodayActive);
         };
-        
         window.updateRevStats = (dId,cId,idx,f,v) => {
             let d=window.appData.find(x=>x.id===dId); if(!d)return;
             let c=d.contents.find(x=>x.id===cId); if(!c)return;
             if(!c.revEx)c.revEx=[0,0,0,0,0,0]; if(!c.revAc)c.revAc=[0,0,0,0,0,0];
-            c[f][idx]=parseFloat(v)||0; window.saveData(); window.renderTable(window.isFilterTodayActive);
+            c[f][idx]=v; window.saveData(); window.renderTable(window.isFilterTodayActive);
         };
-        
         window.toggleRev = (dId,cId,idx) => {
             let d=window.appData.find(x=>x.id===dId); if(!d)return;
             let c=d.contents.find(x=>x.id===cId); if(!c)return;
             c.revs[idx] = c.revs[idx]?0:1; window.saveData(); window.renderTable(window.isFilterTodayActive);
         };
-        
-        window.addContent = (dId) => {
-            let d=window.appData.find(x=>x.id===dId); if(!d)return;
-            d.contents.push({ id:'c'+Date.now(), name:'Novo Tópico', cob:0, ex:0, ac:0, date:'', revs:[0,0,0,0,0,0] });
-            d.expanded=true; window.saveData(); window.renderTable(window.isFilterTodayActive);
+        window.addDisciplineInline = () => {
+            const name = document.getElementById('new-disc-name').value;
+            if(!name) return;
+            window.appData.push({ id:'d'+Date.now(), name, weight:1, expanded:true, contents:[] });
+            window.saveData(); window.hideInlineAddDiscipline(); window.renderTable(window.isFilterTodayActive);
         };
-        
-        window.deleteContent = (dId,cId) => {
-            if(!confirm('Excluir?'))return;
-            let d=window.appData.find(x=>x.id===dId); if(!d)return;
+        window.addContent = (dId) => {
+            let d=window.appData.find(x=>x.id===dId);
+            d.contents.push({ id:'c'+Date.now(), name:'Novo Tópico', cob:0, ex:0, ac:0, date:'', revs:[0,0,0,0,0,0], revEx:[0,0,0,0,0,0], revAc:[0,0,0,0,0,0] });
+            window.saveData(); window.renderTable(window.isFilterTodayActive);
+        };
+        window.deleteContent = (dId, cId) => {
+            if(!confirm('Excluir?')) return;
+            let d=window.appData.find(x=>x.id===dId);
             d.contents = d.contents.filter(x=>x.id!==cId);
             window.saveData(); window.renderTable(window.isFilterTodayActive);
         };
-
-        // Link Edit Logic
-        window.enableLinkEdit = (container) => {
-            const view = container.querySelector('.view-mode');
-            const edit = container.querySelector('.edit-mode');
-            view.classList.add('hidden');
-            edit.classList.remove('hidden');
-            edit.focus();
-        };
-
-        window.saveLinkEdit = (input, dId, cId) => {
-            window.updateContent(dId, cId, 'link', input.value);
-            // Table re-renders automatically, fixing visibility
-        };
-
-        window.calcSmartCycle = () => {
-            let list = [];
-            (window.appData || []).forEach(d => d.contents.forEach(c => {
-                let p = c.ex > 0 ? (c.ac/c.ex) : 0.5;
-                let score = (c.cob||0)*1.0 + d.weight*15 + (1-p)*80;
-                list.push({name:c.name, disc:d.name, score});
-            }));
-            list.sort((a,b)=>b.score-a.score);
-            let top = list.slice(0,10);
-            let html = '<div class="space-y-2">';
-            top.forEach((i, idx) => {
-                html += `<div class="p-4 bg-slate-800/50 rounded border-l-4 border-cyan-500 flex justify-between items-center hover:bg-slate-800 transition-colors">
-                    <div><div class="text-[0.65rem] text-cyan-400 uppercase font-mono tracking-wider">${idx+1}. ${i.disc}</div><div class="font-bold text-white text-sm mt-1">${i.name}</div></div>
-                    <div class="text-white font-bold font-mono bg-slate-700 px-3 py-1 rounded text-xs">Prioridade Alta</div>
-                </div>`;
-            });
-            html += '</div>';
-            document.getElementById('smart-content').innerHTML = html;
-            document.getElementById('smart-modal').classList.remove('hidden');
-            document.getElementById('smart-modal').classList.add('flex');
-        };
-        window.closeModal = () => {
-            document.getElementById('smart-modal').classList.add('hidden');
-            document.getElementById('smart-modal').classList.remove('flex');
-        };
-
-        window.switchTab = (t) => {
-            ['dashboard','cycle'].forEach(x => {
-                document.getElementById(`view-${x}`).classList.add('hidden');
-                document.getElementById(`tab-${x}`).classList.remove('active');
-            });
-            document.getElementById(`view-${t}`).classList.remove('hidden');
-            document.getElementById(`tab-${t}`).classList.add('active');
-            if(t==='dashboard') window.updateStats(); else window.renderTable(window.isFilterTodayActive);
-        };
-
-        // ========== CHARTS ==========
-        function initCharts() {
-            Chart.defaults.color = '#94a3b8';
-            Chart.defaults.font.family = "'Inter', sans-serif";
-            const ctxR = document.getElementById('radarChart')?.getContext('2d');
-            if(ctxR) charts.radar = new Chart(ctxR, {
-                type: 'radar',
-                data: { labels:[], datasets:[{ label:'%', data:[], backgroundColor:'rgba(34, 211, 238, 0.2)', borderColor:'#22d3ee', pointBackgroundColor:'#22d3ee', pointBorderColor:'#fff', borderWidth: 2 }] },
-                options: { responsive:true, maintainAspectRatio:false, scales:{ r:{ grid:{ color:'#334155' }, angleLines:{ color:'#334155' }, pointLabels:{ color:'#cbd5e1', font:{size:11, weight:'bold'} }, ticks:{ display:false, backdropColor:'transparent' } } } }
-            });
-            const ctxL = document.getElementById('lineChart')?.getContext('2d');
-            if(ctxL) charts.line = new Chart(ctxL, {
-                type: 'line',
-                data: { labels:['Seg','Ter','Qua','Qui','Sex','Sab','Dom'], datasets:[{ label:'Qtd', data:[0,0,0,0,0,0,0], borderColor:'#10b981', backgroundColor:(ctx)=>{ const g=ctx.chart.ctx.createLinearGradient(0,0,0,200); g.addColorStop(0,'rgba(16,185,129,0.2)'); g.addColorStop(1,'rgba(16,185,129,0)'); return g; }, fill:true, tension:0.4, borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#0f172a', pointBorderColor: '#10b981', pointBorderWidth: 2 }] },
-                options: { responsive:true, maintainAspectRatio:false, scales:{ y:{ grid:{ color:'#334155' }, border:{display:false} }, x:{ grid:{ display:false }, border:{display:false} } }, plugins:{ legend:{ display:false } } }
-            });
-        }
+        
+        window.showInlineAddDiscipline = () => document.getElementById('inline-add-discipline').style.display = 'flex';
+        window.hideInlineAddDiscipline = () => document.getElementById('inline-add-discipline').style.display = 'none';
+        window.filterToday = () => { window.isFilterTodayActive = !window.isFilterTodayActive; window.renderTable(window.isFilterTodayActive); };
+        window.editLink = (el) => { el.querySelector('.view-link').style.display='none'; el.querySelector('.edit-link').style.display='block'; el.querySelector('.edit-link').focus(); };
+        window.saveLink = (el, dId, cId) => { window.updateContent(dId, cId, 'link', el.value); window.renderTable(window.isFilterTodayActive); };
+        window.closeModal = () => document.getElementById('smart-modal').style.display = 'none';
 
         window.updateStats = function() {
             let tot=0, ac=0, rev=0, dS={};
             const today = new Date(); today.setHours(0,0,0,0);
-            (window.appData || []).forEach(d => dS[d.name]={ex:0,ac:0});
-            (window.appData || []).forEach(d => d.contents.forEach(c => {
-                tot+=c.ex||0; ac+=c.ac||0;
-                if(dS[d.name]){ dS[d.name].ex+=c.ex||0; dS[d.name].ac+=c.ac||0; }
-                if(c.date) calculateReviews(c.date).forEach((r,i) => { if(!c.revs[i] && new Date(r.date)<=today) rev++; });
-            }));
+            (window.appData||[]).forEach(d => {
+                dS[d.name] = {ex:0, ac:0};
+                d.contents.forEach(c => {
+                    tot += Number(c.ex)||0; ac += Number(c.ac)||0;
+                    dS[d.name].ex += Number(c.ex)||0; dS[d.name].ac += Number(c.ac)||0;
+                    if(c.date) {
+                        calculateReviews(c.date).forEach((r,i) => { if(!c.revs[i] && r.isDue) rev++; });
+                    }
+                });
+            });
+            document.getElementById('kpi-total').innerText = tot;
+            document.getElementById('kpi-perf').innerText = tot>0?((ac/tot)*100).toFixed(0)+'%':'0%';
+            document.getElementById('kpi-rev').innerText = rev;
             
-            if(document.getElementById('kpi-total')) document.getElementById('kpi-total').innerText = tot;
-            if(document.getElementById('kpi-perf')) document.getElementById('kpi-perf').innerText = tot>0?((ac/tot)*100).toFixed(0)+'%':'0%';
-            if(document.getElementById('kpi-rev')) document.getElementById('kpi-rev').innerText = rev;
-
-            if(charts.radar) {
-                const lbs = Object.keys(dS);
-                charts.radar.data.labels = lbs;
-                charts.radar.data.datasets[0].data = lbs.map(k => dS[k].ex>0 ? (dS[k].ac/dS[k].ex)*100 : 0);
+            const ctx = document.getElementById('radarChart');
+            if(ctx && charts.radar) {
+                charts.radar.data.labels = Object.keys(dS);
+                charts.radar.data.datasets[0].data = Object.values(dS).map(v => v.ex>0 ? (v.ac/v.ex)*100 : 0);
                 charts.radar.update();
             }
-        }
+        };
 
-        window.onload = function() { initCharts(); };
+        window.onload = function() {
+            try { const local = localStorage.getItem('neuro_fiscal_pro_v6'); if(local) window.appData = JSON.parse(local); else window.appData = SEED; } catch(e) { window.appData = SEED; }
+            
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            charts.radar = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: [], datasets: [{ label: 'Desempenho %', data: [], backgroundColor: '#3b82f6', borderRadius: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100, grid: { color: '#252b36' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+            });
+            
+            const ctx2 = document.getElementById('lineChart').getContext('2d');
+            charts.line = new Chart(ctx2, {
+                type: 'line',
+                data: { labels: ['S','T','Q','Q','S','S','D'], datasets: [{ label: 'Questões', data: [0,0,0,0,0,0,0], borderColor: '#10b981', tension: 0.4 }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { grid: { color: '#252b36' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+            });
+
+            window.renderTable(false);
+            window.updateStats();
+            window.switchTab('dashboard');
+        };
     </script>
 </body>
 </html>
