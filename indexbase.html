@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>NeuroAI Study · Fiscal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase Imports (Módulos ES) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Configuração Global e Inicialização (SEU PROJETO)
+        const firebaseConfig = {
+          apiKey: "AIzaSyB49R1ZycEX_4Q6vzaM7wNYdi5qf3Zfm2M",
+          authDomain: "neuroai-study-3a97b.firebaseapp.com",
+          projectId: "neuroai-study-3a97b",
+          storageBucket: "neuroai-study-3a97b.firebasestorage.app",
+          messagingSenderId: "233819898876",
+          appId: "1:233819898876:web:f48f18e06c6a13e91aa879"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+        
+        const appId = 'neuro-fiscal-app'; 
+        let userId = null;
+
+        // Expondo funções para o HTML
+        window.firebaseApp = { 
+            login: async () => {
+                try {
+                    await signInWithPopup(auth, provider);
+                } catch (error) {
+                    console.error("Erro no login:", error);
+                    alert("Erro ao logar: " + error.message);
+                }
+            },
+            logout: async () => {
+                try {
+                    await signOut(auth);
+                    window.location.reload(); 
+                } catch (error) {
+                    console.error("Erro ao sair:", error);
+                }
+            }
+        };
+
+        // Listener de Estado da Autenticação
+        onAuthStateChanged(auth, (user) => {
+            const loginBtn = document.getElementById('btn-login-google');
+            const userProfile = document.getElementById('user-profile-area');
+            const userImg = document.getElementById('user-avatar');
+            
+            if (user) {
+                userId = user.uid;
+                window.userId = userId;
+                
+                if(loginBtn) loginBtn.classList.add('hidden');
+                if(userProfile) userProfile.classList.remove('hidden');
+                if(userImg) userImg.src = user.photoURL || '';
+                
+                updateSyncStatus('online');
+                setupRealtimeListener();
+            } else {
+                if(loginBtn) loginBtn.classList.remove('hidden');
+                if(userProfile) userProfile.classList.add('hidden');
+                updateSyncStatus('offline');
+            }
+        });
+
+        // Listener de Dados em Tempo Real (Sincronização)
+        function setupRealtimeListener() {
+            if (!userId) return;
+            const docRef = doc(db, 'artifacts', appId, 'users', userId, 'data', 'study_cycle');
+            
+            onSnapshot(docRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data && data.payload) {
+                        try {
+                            window.appData = JSON.parse(data.payload);
+                            window.renderTable(window.isFilterTodayActive, true); 
+                            window.updateStats();
+                        } catch (e) { console.error("Erro ao processar dados da nuvem", e); }
+                    }
+                } else {
+                    window.saveData(true);
+                }
+            }, (error) => {
+                console.error("Erro de sincronização:", error);
+                updateSyncStatus('error');
+            });
+        }
+
+        // Função de Salvamento na Nuvem
+        window.saveData = async function(force = false) {
+            if (!userId) return;
+            
+            const indicator = document.querySelector('.autosave-dot');
+            if (indicator) indicator.classList.add('animate-ping');
+
+            const docRef = doc(db, 'artifacts', appId, 'users', userId, 'data', 'study_cycle');
+            try {
+                await setDoc(docRef, { 
+                    payload: JSON.stringify(window.appData),
+                    lastUpdate: new Date().toISOString(),
+                    userEmail: auth.currentUser.email
+                });
+                
+                if (indicator) {
+                    setTimeout(() => indicator.classList.remove('animate-ping'), 500);
+                }
+            } catch (e) {
+                console.error("Erro ao salvar na nuvem:", e);
+            }
+            window.updateStats();
+        };
+
+        function updateSyncStatus(status) {
+            const el = document.getElementById('sync-status-text');
+            const dot = document.querySelector('.autosave-dot');
+            if (!el || !dot) return;
+
+            if (status === 'online') {
+                el.innerText = 'ONLINE';
+                el.classList.add('text-emerald-400');
+                dot.classList.add('bg-emerald-500');
+                dot.classList.remove('bg-yellow-500', 'bg-red-500');
+            } else if (status === 'error') {
+                el.innerText = 'ERRO';
+                dot.classList.add('bg-red-500');
+            } else {
+                el.innerText = 'OFFLINE';
+                dot.classList.add('bg-yellow-500');
+                dot.classList.remove('bg-emerald-500');
+            }
+        }
+    </script>
+
+    <style>
+        /* --- ESTILO TECH ISOMETRIC DARK v5.2 --- */
+        :root {
+            --primary-cyan: #22d3ee;
+            --primary-blue: #3b82f6;
+            --bg-dark: #020617; /* Slate 950 */
+            --panel-bg: #0f172a; /* Slate 900 */
+            --border-tech: #1e293b; /* Slate 800 */
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            /* Grid Isométrico Sutil */
+            background-image: 
+                linear-gradient(30deg, #111827 12%, transparent 12.5%, transparent 87%, #111827 87.5%, #111827),
+                linear-gradient(150deg, #111827 12%, transparent 12.5%, transparent 87%, #111827 87.5%, #111827),
+                linear-gradient(30deg, #111827 12%, transparent 12.5%, transparent 87%, #111827 87.5%, #111827),
+                linear-gradient(150deg, #111827 12%, transparent 12.5%, transparent 87%, #111827 87.5%, #111827),
+                linear-gradient(60deg, #1e293b77 25%, transparent 25.5%, transparent 75%, #1e293b77 75%, #1e293b77),
+                linear-gradient(60deg, #1e293b77 25%, transparent 25.5%, transparent 75%, #1e293b77 75%, #1e293b77);
+            background-size: 80px 140px;
+            background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        /* Painéis Tech */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-tech);
+            border-radius: 8px;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8);
+        }
+
+        /* --- LOGO ESTILIZADA --- */
+        .brain-network-logo {
+            filter: drop-shadow(0 0 12px rgba(34, 211, 238, 0.3));
+            transition: all 0.3s ease;
+        }
+        .brain-network-logo:hover {
+            filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.6));
+            transform: scale(1.02);
+        }
+
+        /* --- BOTÕES DE NAVEGAÇÃO --- */
+        .nav-container {
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 4px;
+            border-radius: 8px;
+            display: flex;
+            gap: 4px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .nav-btn {
+            position: relative;
+            background: transparent;
+            color: #64748b;
+            padding: 8px 24px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .nav-btn:hover { color: #cbd5e1; background: rgba(255,255,255,0.03); }
+
+        .nav-btn.active {
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            color: #38bdf8;
+            border: 1px solid #38bdf8;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.15), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        /* --- TABELA --- */
+        .tabela-ciclo { width: 100%; border-collapse: separate; border-spacing: 0; }
+        
+        .tabela-ciclo th {
+            position: sticky; top: 0;
+            background: #0f172a;
+            color: #94a3b8;
+            padding: 14px 10px;
+            font-size: 0.65rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.08em;
+            border-bottom: 2px solid #334155;
+            z-index: 20;
+            font-family: 'JetBrains Mono';
+        }
+
+        .tabela-ciclo td {
+            padding: 10px;
+            vertical-align: middle;
+            border-bottom: 1px solid #1e293b;
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        .rev-header-group {
+            border-top: 3px solid transparent;
+            background: linear-gradient(to bottom, rgba(30, 41, 59, 0.5), transparent);
+        }
+        
+        .disciplina-row td {
+            background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%);
+            border-top: 1px solid #475569;
+            color: #fff;
+            padding: 16px 12px;
+        }
+
+        /* Inputs - ESTADO READONLY VS EDITAVEL */
+        .input-tech {
+            width: 100%;
+            border-radius: 4px;
+            padding: 6px 10px;
+            font-size: 0.85rem;
+            outline: none;
+            transition: 0.2s;
+            font-family: 'Inter';
+        }
+        
+        /* Estado Padrão (Bloqueado) */
+        .input-tech:read-only, .input-number-tech:read-only {
+            background: transparent;
+            border: 1px solid transparent;
+            color: #94a3b8; /* Muted */
+            cursor: default;
+        }
+        
+        .disciplina-row .input-tech:read-only {
+            color: white; /* Header needs white */
+        }
+
+        /* Estado Editável (Após Duplo Clique) */
+        .input-tech:not(:read-only), .input-number-tech:not(:read-only) {
+            background: #020617;
+            border: 1px solid var(--primary-cyan);
+            color: #fff;
+            box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.3);
+            cursor: text;
+        }
+
+        .input-number-tech {
+            width: 100%; height: 32px;
+            border-radius: 4px;
+            text-align: center;
+            font-family: 'JetBrains Mono';
+            font-weight: 600;
+        }
+
+        /* Link Display (View Mode) */
+        .link-view {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #38bdf8;
+            font-size: 0.75rem;
+            text-decoration: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            transition: background 0.2s;
+            cursor: pointer;
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .link-view:hover {
+            background: rgba(56, 189, 248, 0.1);
+            text-decoration: underline;
+        }
+        .link-view-empty {
+            color: #475569;
+            font-style: italic;
+            cursor: default;
+        }
+
+        /* Badges */
+        .relevancia-badge {
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 4px;
+            padding: 3px 8px;
+            font-size: 0.75rem; font-weight: 700;
+            color: #e2e8f0; font-family: 'JetBrains Mono';
+        }
+
+        /* Status Dots */
+        .rev-status {
+            width: 22px; height: 22px;
+            border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.65rem; font-weight: 900;
+            cursor: pointer; transition: 0.2s;
+        }
+        .rev-done-tech { background: #0d9488; color: #ccfbf1; border: 1px solid #14b8a6; }
+        .rev-pending-tech { background: #be123c; color: #ffe4e6; border: 1px solid #f43f5e; animation: pulse 2s infinite; }
+        .rev-today-tech { background: #db2777; color: #fff; border: 1px solid #f9a8d4; }
+
+        /* Checkbox Tech */
+        .checkbox-tech {
+            appearance: none;
+            background: #020617;
+            width: 18px; height: 18px;
+            border: 2px solid #475569;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+        }
+        .checkbox-tech:checked { background: #0891b2; border-color: #22d3ee; }
+        .checkbox-tech:checked::after {
+            content: '✔'; position: absolute;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: white; font-size: 10px;
+        }
+
+        /* Botões Ação */
+        .btn-tech {
+            padding: 8px 16px; border-radius: 6px;
+            font-size: 0.75rem; font-weight: 600;
+            background: #1e293b; border: 1px solid #334155;
+            color: #cbd5e1; cursor: pointer; transition: 0.2s;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-tech:hover { background: #334155; color: white; border-color: #64748b; }
+        .btn-primary-tech { 
+            background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+            border: 1px solid #06b6d4; color: white;
+            box-shadow: 0 4px 12px rgba(8, 145, 178, 0.4);
+        }
+        .btn-primary-tech:hover { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
+
+        @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(244,63,94,0.4);} 70% {box-shadow: 0 0 0 4px rgba(244,63,94,0);} 100% {box-shadow: 0 0 0 0 rgba(244,63,94,0);} }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <nav class="sticky top-0 z-50 glass-panel mx-auto max-w-[95%] my-6 px-8 py-4 flex flex-wrap justify-between items-center shadow-2xl">
+        <div class="flex items-center gap-6 group cursor-default">
+            <!-- LOGO: Rede Neural Isométrica -->
+            <div class="brain-network-logo relative w-16 h-16 flex items-center justify-center">
+                <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 15 C30 15 15 30 15 50 C15 70 30 85 50 90 C70 85 85 70 85 50 C85 30 70 15 50 15 Z" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+                    <g stroke-linecap="round" stroke-width="1.5">
+                        <path d="M30 35 L50 25 L70 35" stroke="#3b82f6" stroke-opacity="0.8"/>
+                        <path d="M30 35 L25 55 L40 70" stroke="#0ea5e9" stroke-opacity="0.9"/>
+                        <path d="M70 35 L75 55 L60 70" stroke="#0ea5e9" stroke-opacity="0.9"/>
+                        <path d="M50 25 L50 50" stroke="#3b82f6" stroke-opacity="0.6"/>
+                        <path d="M25 55 L50 50 L75 55" stroke="#22d3ee" stroke-opacity="0.8"/>
+                        <path d="M40 70 L50 90 L60 70" stroke="#3b82f6" stroke-opacity="0.8"/>
+                    </g>
+                    <g fill="#e0f2fe">
+                        <circle cx="50" cy="25" r="3" fill="#60a5fa"/>
+                        <circle cx="30" cy="35" r="2.5" />
+                        <circle cx="70" cy="35" r="2.5" />
+                        <circle cx="50" cy="50" r="4" fill="#22d3ee" stroke="#0891b2" stroke-width="1"/>
+                        <circle cx="50" cy="90" r="2" fill="#60a5fa"/>
+                    </g>
+                </svg>
+            </div>
+            
+            <div class="flex flex-col">
+                <h1 class="text-3xl font-extrabold tracking-tight text-white" style="text-shadow: 0 4px 10px rgba(56, 189, 248, 0.2);">
+                    NeuroAI <span class="text-cyan-400">Study</span>
+                </h1>
+                <div class="flex items-center gap-3 mt-1">
+                    <div class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded text-[0.6rem] font-mono text-cyan-500 font-bold uppercase tracking-widest">
+                        v3.1 · Fiscal
+                    </div>
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-1.5 text-[0.6rem] text-slate-500 font-mono border-r border-slate-800 pr-4">
+                <div class="autosave-dot w-1.5 h-1.5 rounded-full bg-yellow-500 shadow-[0_0_5px_#eab308]"></div>
+                <span class="tracking-widest" id="sync-status-text">OFFLINE</span>
+            </div>
+
+            <!-- LOGIN BUTTON / PROFILE -->
+            <button id="btn-login-google" onclick="window.firebaseApp.login()" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-1.5 px-3 rounded border border-slate-600 transition-colors">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/></svg>
+                Entrar
+            </button>
+
+            <div id="user-profile-area" class="hidden flex items-center gap-3">
+                <img id="user-avatar" src="" alt="User" class="w-6 h-6 rounded-full border border-slate-600">
+                <button onclick="window.firebaseApp.logout()" class="text-[0.65rem] text-slate-400 hover:text-white uppercase tracking-wider font-bold">Sair</button>
+            </div>
+            
+            <!-- NAV BUTTONS -->
+            <div class="nav-container">
+                <button onclick="window.switchTab('dashboard')" id="tab-dashboard" class="nav-btn active">
+                    Visão Geral
+                </button>
+                <button onclick="window.switchTab('cycle')" id="tab-cycle" class="nav-btn">
+                    Ciclo
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-[95%] mx-auto pb-12">
+
+        <!-- DASHBOARD -->
+        <div id="view-dashboard" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                <!-- KPI Domínio -->
+                <div class="glass-panel p-6 border-b-4 border-b-blue-500 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-blue-500/10 to-transparent"></div>
+                    <div class="text-slate-400 text-[0.65rem] font-bold uppercase tracking-widest mb-2 font-mono">Domínio Global</div>
+                    <div class="flex items-baseline justify-between">
+                        <span class="text-4xl font-black text-white" id="kpi-perf">0%</span>
+                        <div class="text-xs font-bold text-blue-400 bg-blue-950/50 px-2 py-1 rounded border border-blue-500/20">ACERTOS</div>
+                    </div>
+                </div>
+                
+                <!-- KPI Questões -->
+                <div class="glass-panel p-6 border-b-4 border-b-cyan-500 relative overflow-hidden">
+                    <div class="text-slate-400 text-[0.65rem] font-bold uppercase tracking-widest mb-2 font-mono">Volume Total</div>
+                    <div class="flex items-baseline justify-between">
+                        <span class="text-4xl font-black text-cyan-400" id="kpi-total">0</span>
+                        <div class="text-xs font-bold text-cyan-400 bg-cyan-950/50 px-2 py-1 rounded border border-cyan-500/20">QUESTÕES</div>
+                    </div>
+                </div>
+
+                <!-- KPI Revisões -->
+                <div class="glass-panel p-6 border-b-4 border-b-rose-500 relative overflow-hidden">
+                    <div class="text-slate-400 text-[0.65rem] font-bold uppercase tracking-widest mb-2 font-mono">Agenda Hoje</div>
+                    <div class="flex items-baseline justify-between">
+                        <span class="text-4xl font-black text-rose-500" id="kpi-rev">0</span>
+                        <div class="text-xs font-bold text-rose-400 bg-rose-950/50 px-2 py-1 rounded border border-rose-500/20">PENDENTES</div>
+                    </div>
+                </div>
+
+                <!-- KPI Meta -->
+                <div class="glass-panel p-6 border-b-4 border-b-emerald-500 relative overflow-hidden">
+                    <div class="text-slate-400 text-[0.65rem] font-bold uppercase tracking-widest mb-2 font-mono">Meta Semanal</div>
+                    <div class="flex items-baseline justify-between">
+                        <span class="text-4xl font-black text-emerald-500">30h</span>
+                        <div class="text-xs font-bold text-emerald-400 bg-emerald-950/50 px-2 py-1 rounded border border-emerald-500/20">LÍQUIDAS</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-panel p-6 border border-slate-800 bg-[#0f172a]/80">
+                    <h3 class="text-slate-200 font-bold mb-6 flex items-center gap-3 text-sm uppercase tracking-widest font-mono">
+                        <span class="w-2 h-2 bg-cyan-500 rotate-45"></span> Domínio por disciplina
+                    </h3>
+                    <div class="chart-container h-64">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+                <div class="glass-panel p-6 border border-slate-800 bg-[#0f172a]/80">
+                    <h3 class="text-slate-200 font-bold mb-6 flex items-center gap-3 text-sm uppercase tracking-widest font-mono">
+                        <span class="w-2 h-2 bg-emerald-500 rotate-45"></span> Constância Diária
+                    </h3>
+                    <div class="chart-container h-64">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW CICLO -->
+        <div id="view-cycle" class="hidden space-y-4">
+            
+            <div class="flex items-center justify-between bg-[#0f172a] p-3 rounded-lg border border-slate-800">
+                <div class="flex gap-3">
+                    <button onclick="window.showInlineAddDiscipline()" class="btn-tech btn-primary-tech">
+                        <span class="text-lg leading-none">+</span> Disciplina
+                    </button>
+                    <button onclick="window.filterToday()" id="btn-hoje" class="btn-tech text-orange-400 border-orange-900/50 hover:bg-orange-900/20 hover:border-orange-500/50">
+                        🔥 Hoje
+                    </button>
+                    <button onclick="window.calcSmartCycle()" class="btn-tech text-purple-400 border-purple-900/50 hover:bg-purple-900/20 hover:border-purple-500/50">
+                        🧠 Inteligente
+                    </button>
+                </div>
+                <div class="text-[0.65rem] font-mono text-slate-500 px-3 border-l border-slate-800">
+                    DATABASE: CLOUD
+                </div>
+            </div>
+
+            <div id="inline-add-discipline" class="glass-panel p-4 mb-4 hidden flex items-center gap-3 border-l-4 border-l-cyan-500 bg-[#0f172a]">
+                <span class="text-cyan-400 font-bold text-xs uppercase tracking-wider font-mono">Nova Matéria</span>
+                <input type="text" id="new-disc-name" placeholder="Digite o nome..." class="input-tech bg-slate-900 border-slate-700 w-72 focus:border-cyan-500">
+                <select id="new-disc-weight" class="input-tech bg-slate-900 border-slate-700 w-28 focus:border-cyan-500">
+                    <option value="1">Peso 1</option>
+                    <option value="2">Peso 2</option>
+                    <option value="3" selected>Peso 3</option>
+                </select>
+                <button onclick="window.addDisciplineInline()" class="btn-tech bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-500">Salvar</button>
+                <button onclick="window.hideInlineAddDiscipline()" class="btn-tech hover:text-white">Cancelar</button>
+            </div>
+
+            <div class="glass-panel overflow-x-auto p-0 border border-slate-800">
+                <table class="tabela-ciclo">
+                    <thead>
+                        <tr>
+                            <th class="w-8"></th>
+                            <th class="min-w-[450px] text-left pl-4">Disciplina / Tópico</th>
+                            <th class="w-24 text-center">Relevância</th>
+                            <th class="w-16 text-center">Peso</th>
+                            <th class="w-28 text-center">Link</th>
+                            <th class="w-16 text-center">Qtd</th>
+                            <th class="w-16 text-center">Acertos</th>
+                            <th class="w-20 text-center text-cyan-400 font-bold">%</th>
+                            <th class="w-20 text-center text-[0.6rem] text-slate-400 font-bold tracking-wider" style="border-right: none;">ESTUDADO</th>
+                            
+                            <th class="w-10 text-center rev-header-group" style="border-top-color: #f43f5e;">R1</th>
+                            <th class="w-20 text-center rev-header-group" style="border-top-color: #f43f5e; border-right: 1px solid #334155;">Status</th>
+                            
+                            <th class="w-10 text-center rev-header-group" style="border-top-color: #f97316;">R7</th>
+                            <th class="w-20 text-center rev-header-group" style="border-top-color: #f97316; border-right: 1px solid #334155;">Status</th>
+                            
+                            <th class="w-10 text-center rev-header-group" style="border-top-color: #eab308;">R15</th>
+                            <th class="w-20 text-center rev-header-group" style="border-top-color: #eab308; border-right: 1px solid #334155;">Status</th>
+                            
+                            <th class="w-10 text-center rev-header-group" style="border-top-color: #22c55e;">R30</th>
+                            <th class="w-20 text-center rev-header-group" style="border-top-color: #22c55e; border-right: 1px solid #334155;">Status</th>
+                            
+                            <th class="w-10 text-center rev-header-group" style="border-top-color: #06b6d4;">R60</th>
+                            <th class="w-20 text-center rev-header-group" style="border-top-color: #06b6d4; border-right: 1px solid #334155;">Status</th>
+                            
+                            <th class="w-10 text-center rev-header-group" style="border-top-color: #6366f1;">R90</th>
+                            <th class="w-20 text-center rev-header-group" style="border-top-color: #6366f1;">Status</th>
+                            
+                            <th class="w-10"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Smart -->
+    <div id="smart-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] hidden items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-2xl p-6 relative bg-[#0f172a] border border-slate-700 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-4 mb-4">
+                <h3 class="text-lg font-bold text-white flex gap-2 items-center font-mono">
+                    <span class="text-purple-500 text-xl">⚡</span> ALGORITMO INTELIGENTE
+                </h3>
+                <button onclick="window.closeModal()" class="text-slate-500 hover:text-white text-xl">✕</button>
+            </div>
+            <div id="smart-content" class="space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scroll"></div>
+        </div>
+    </div>
+
+    <script>
+        "use strict";
+
+        // Global Variables
+        window.appData = [];
+        window.isFilterTodayActive = false;
+        const charts = {};
+        
+        // Seed Data for new users
+        const SEED_DATA = [
+            {
+                id: 'd1', name: 'Direito Tributário', weight: 3, expanded: true,
+                contents: [
+                    { id: 'c1', name: 'Competência Tributária', cob: 85, ex: 45, ac: 38, date: new Date().toISOString().split('T')[0], revs: [0,0,0,0,0,0], revEx:[15,0,0,0,0,0], revAc:[14,0,0,0,0,0] },
+                    { id: 'c2', name: 'Impostos em Espécie', cob: 90, ex: 30, ac: 15, date: '2023-11-01', link: 'https://www.google.com', revs: [1,0,0,0,0,0], revEx:[10,0,0,0,0,0], revAc:[8,0,0,0,0,0] }
+                ]
+            },
+            {
+                id: 'd2', name: 'Contabilidade Geral', weight: 3, expanded: false,
+                contents: [
+                    { id: 'c3', name: 'CPC 00 - Estrutura Conceitual', cob: 70, ex: 20, ac: 19, date: '2023-10-25', revs: [1,1,1,0,0,0], revEx:[5,5,5,0,0,0], revAc:[5,4,5,0,0,0] }
+                ]
+            }
+        ];
+
+        // ========== RENDER LOGIC ==========
+        const REVISION_INTERVALS = [1, 7, 15, 30, 60, 90];
+
+        function calculateReviews(dateStr) {
+            if (!dateStr) return Array(REVISION_INTERVALS.length).fill({ date: null, label: '-', shortDate: '-' });
+            const base = new Date(dateStr);
+            base.setHours(0,0,0,0);
+            return REVISION_INTERVALS.map(days => {
+                const d = new Date(base);
+                d.setDate(d.getDate() + days);
+                d.setHours(0,0,0,0);
+                return {
+                    date: d.toISOString().split('T')[0],
+                    shortDate: `${d.getDate()}/${d.getMonth()+1}`,
+                    label: `R${days}`
+                };
+            });
+        }
+
+        window.renderTable = function(filterToday = false, fromCloud = false) {
+            if (fromCloud) window.isFilterTodayActive = filterToday;
+            
+            const tbody = document.getElementById('table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            const today = new Date(); today.setHours(0,0,0,0);
+            let rowCount = 0;
+
+            (window.appData || []).forEach(disc => {
+                if (!filterToday) {
+                    const tr = document.createElement('tr');
+                    tr.className = 'disciplina-row';
+                    tr.onclick = () => window.toggleDisc(disc.id);
+                    tr.innerHTML = `
+                        <td class="text-center text-slate-500 cursor-pointer hover:text-white font-bold text-lg">${disc.expanded ? '▼' : '▶'}</td>
+                        <td class="font-bold">
+                            <div class="flex flex-col gap-1">
+                                <input readonly ondblclick="this.readOnly=false;this.focus()" onblur="this.readOnly=true" onkeydown="if(event.key==='Enter')this.blur()" class="input-tech text-base font-bold bg-transparent border-transparent text-white" value="${disc.name}" onchange="window.updateDisc('${disc.id}', 'name', this.value)" onclick="event.stopPropagation()">
+                                <button onclick="event.stopPropagation(); window.addContent('${disc.id}')" class="text-xs text-cyan-500 hover:text-cyan-300 text-left pl-2 flex items-center gap-1 transition-colors font-mono uppercase tracking-wide">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                    Adicionar Tópico
+                                </button>
+                            </div>
+                        </td>
+                        <td colspan="1"></td>
+                        <td class="align-top pt-4">
+                            <input readonly ondblclick="this.readOnly=false;this.focus()" onblur="this.readOnly=true" onkeydown="if(event.key==='Enter')this.blur()" class="input-number-tech w-12 mx-auto bg-slate-800/50 border-slate-700" type="number" value="${disc.weight}" onchange="window.updateDisc('${disc.id}', 'weight', this.value)" onclick="event.stopPropagation()">
+                        </td>
+                        <td colspan="30"></td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+
+                if (disc.expanded || filterToday) {
+                    disc.contents.forEach(cont => {
+                        const revDates = calculateReviews(cont.date);
+                        let showRow = !filterToday;
+                        if (filterToday && cont.date) {
+                            showRow = revDates.some((rd, idx) => !cont.revs[idx] && new Date(rd.date) <= today);
+                        }
+
+                        if (showRow) {
+                            rowCount++;
+                            const tr = document.createElement('tr');
+                            tr.className = 'conteudo-row';
+
+                            const perfVal = cont.ex > 0 ? (cont.ac / cont.ex) : 0;
+                            let perfColor = 'text-slate-500';
+                            if (cont.ex > 0) {
+                                if (perfVal < 0.7) perfColor = 'text-rose-500';
+                                else if (perfVal <= 0.85) perfColor = 'text-blue-400';
+                                else perfColor = 'text-emerald-400';
+                            }
+
+                            // --- LINK LOGIC: View vs Edit ---
+                            const linkDisplay = cont.link && cont.link.trim() !== ''
+                                ? `<a href="${cont.link}" target="_blank" onclick="event.stopPropagation()" class="link-view">🔗 <span class="truncate">Link</span></a>`
+                                : `<span class="link-view link-view-empty">--</span>`;
+                            
+                            // Using a container to swap
+                            const linkHtml = `
+                                <div class="w-full" ondblclick="window.enableLinkEdit(this)">
+                                    <div class="view-mode">${linkDisplay}</div>
+                                    <input class="edit-mode input-tech text-xs text-cyan-500 hidden" placeholder="Cole a URL..." value="${cont.link || ''}" onblur="window.saveLinkEdit(this, '${disc.id}', '${cont.id}')" onkeydown="if(event.key==='Enter')this.blur()">
+                                </div>
+                            `;
+
+                            let revCells = '';
+                            revDates.forEach((rd, idx) => {
+                                let statusClass = '', statusIcon = '';
+                                if (cont.date) {
+                                    const revDate = new Date(rd.date);
+                                    if (cont.revs[idx]) { statusClass = 'rev-done-tech'; statusIcon = '✓'; }
+                                    else if (revDate < today) { statusClass = 'rev-pending-tech'; }
+                                    else if (revDate.getTime() === today.getTime()) { statusClass = 'rev-today-tech'; }
+                                    else { statusClass = 'bg-slate-800 text-slate-600'; }
+                                } else { statusClass = 'bg-transparent border border-slate-700 opacity-20'; }
+
+                                const tooltip = rd.shortDate !== '-' ? `R${REVISION_INTERVALS[idx]}: ${rd.shortDate}` : `R${REVISION_INTERVALS[idx]}`;
+                                
+                                const rEx = cont.revEx?.[idx] || 0;
+                                const rAc = cont.revAc?.[idx] || 0;
+                                const rPerfVal = rEx > 0 ? (rAc / rEx) : 0;
+                                const rPerfStr = rEx > 0 ? (rPerfVal * 100).toFixed(0) + '%' : '-';
+                                let rPerfColor = 'text-slate-600';
+                                if(rEx > 0) {
+                                    if (rPerfVal < 0.7) rPerfColor = 'text-rose-500';
+                                    else if (rPerfVal <= 0.85) rPerfColor = 'text-blue-400';
+                                    else rPerfColor = 'text-emerald-400';
+                                }
+
+                                const borderRight = 'border-right: 1px solid #334155;';
+
+                                revCells += `
+                                    <td class="text-center align-middle bg-opacity-20">
+                                        <div class="rev-status mx-auto ${statusClass}" title="${tooltip}" onclick="window.toggleRev('${disc.id}', '${cont.id}', ${idx})">
+                                            ${statusIcon}
+                                        </div>
+                                    </td>
+                                    <td class="px-1 text-center align-middle bg-opacity-20" style="${borderRight}">
+                                        <div class="flex flex-col items-center justify-center gap-1">
+                                            <span class="text-xs font-black font-mono ${rPerfColor}">${rPerfStr}</span>
+                                            <div class="flex gap-1 opacity-60 hover:opacity-100 transition-opacity">
+                                                <input readonly ondblclick="this.readOnly=false;this.focus()" onblur="this.readOnly=true" onkeydown="if(event.key==='Enter')this.blur()" class="w-6 h-5 bg-slate-800 text-[0.65rem] text-center text-slate-300 border border-slate-600 rounded focus:border-cyan-500 input-tech" placeholder="Q" type="number" min="0" value="${rEx || ''}" onchange="window.updateRevStats('${disc.id}', '${cont.id}', ${idx}, 'revEx', this.value)">
+                                                <input readonly ondblclick="this.readOnly=false;this.focus()" onblur="this.readOnly=true" onkeydown="if(event.key==='Enter')this.blur()" class="w-6 h-5 bg-slate-800 text-[0.65rem] text-center text-slate-300 border border-slate-600 rounded focus:border-cyan-500 input-tech" placeholder="A" type="number" min="0" value="${rAc || ''}" onchange="window.updateRevStats('${disc.id}', '${cont.id}', ${idx}, 'revAc', this.value)">
+                                            </div>
+                                        </div>
+                                    </td>
+                                `;
+                            });
+
+                            const isChecked = !!cont.date;
+                            const checkboxHtml = `
+                                <div class="flex justify-center items-center h-full">
+                                    <input type="checkbox" class="checkbox-tech" ${isChecked ? 'checked' : ''} onchange="window.toggleDate('${disc.id}', '${cont.id}', this.checked)">
+                                </div>
+                            `;
+
+                            tr.innerHTML = `
+                                <td></td>
+                                <td><input readonly ondblclick="this.readOnly=false;this.focus()" onblur="this.readOnly=true" onkeydown="if(event.key==='Enter')this.blur()" class="input-tech text-slate-300 font-medium" value="${cont.name}" onchange="window.updateContent('${disc.id}', '${cont.id}', 'name', this.value)"></td>
+                                <td class="text-center">
+                                    <input readonly ondblclick="this.readOnly=false;this.focus()" onblur="this.readOnly=true" onkeydown="if(event.key==='Enter')this.blur()" class="input-number-tech w-14 h-8 text-xs bg-slate-800/60" type="number" min="0" max="100" value="${cont.cob || 0}" onchange="window.updateContent('${disc.id}', '${cont.id}', 'cob', this.value)" title="Duplo clique para editar">
+                                </td>
+                                <td class="text-center text-slate-500 text-xs font-mono font-bold">${disc.weight}</td>
+                                <td>${linkHtml}</td>
+                                <td><input readonly ondblclick="this.readOnly=false;this.focus()" onblur="this.readOnly=true" onkeydown="if(event.key==='Enter')this.blur()" class="input-number-tech w-12 h-8 text-xs bg-slate-800/60" type="number" value="${cont.ex}" onchange="window.updateContent('${disc.id}', '${cont.id}', 'ex', this.value)"></td>
+                                <td><input readonly ondblclick="this.readOnly=false;this.focus()" onblur="this.readOnly=true" onkeydown="if(event.key==='Enter')this.blur()" class="input-number-tech w-12 h-8 text-xs bg-slate-800/60" type="number" value="${cont.ac}" onchange="window.updateContent('${disc.id}', '${cont.id}', 'ac', this.value)"></td>
+                                <td class="text-center font-black font-mono text-base ${perfColor}">${cont.ex > 0 ? (perfVal * 100).toFixed(0)+'%' : '-'}</td>
+                                <td class="text-center align-middle" style="border-right: none;">${checkboxHtml}</td>
+                                ${revCells}
+                                <td class="text-center align-middle pl-2">
+                                    <button class="text-slate-600 hover:text-rose-500 p-2 transition-colors" onclick="window.deleteContent('${disc.id}', '${cont.id}')">✕</button>
+                                </td>
+                            `;
+                            tbody.appendChild(tr);
+                        }
+                    });
+                }
+            });
+
+            if (filterToday && rowCount === 0) {
+                tbody.innerHTML = '<tr><td colspan="40" class="text-center p-10 text-slate-500 font-mono text-sm uppercase tracking-widest">Nada pendente para hoje</td></tr>';
+            }
+        };
+
+        // ========== ACTIONS ==========
+        window.showInlineAddDiscipline = () => document.getElementById('inline-add-discipline').classList.remove('hidden');
+        window.hideInlineAddDiscipline = () => document.getElementById('inline-add-discipline').classList.add('hidden');
+        
+        window.addDisciplineInline = () => {
+            const name = document.getElementById('new-disc-name').value.trim();
+            if (!name) return;
+            const weight = parseInt(document.getElementById('new-disc-weight').value, 10);
+            window.appData.push({ id: 'd'+Date.now(), name, weight, expanded: true, contents: [] });
+            window.saveData();
+            window.renderTable(window.isFilterTodayActive);
+            window.hideInlineAddDiscipline();
+            document.getElementById('new-disc-name').value = '';
+        };
+
+        window.filterToday = () => {
+            window.isFilterTodayActive = !window.isFilterTodayActive;
+            const btn = document.getElementById('btn-hoje');
+            if(window.isFilterTodayActive) {
+                btn.classList.add('active');
+                window.renderTable(true);
+            } else {
+                btn.classList.remove('active');
+                window.renderTable(false);
+            }
+        };
+
+        // ========== OPS ==========
+        window.toggleDisc = (id) => { let d=window.appData.find(x=>x.id===id); if(d){d.expanded=!d.expanded; window.saveData(); window.renderTable(window.isFilterTodayActive);} };
+        
+        window.updateDisc = (id,f,v) => { let d=window.appData.find(x=>x.id===id); if(d){d[f]=f==='weight'?parseFloat(v):v; window.saveData();} };
+        
+        window.updateContent = (dId,cId,f,v) => { 
+            let d=window.appData.find(x=>x.id===dId); if(!d)return;
+            let c=d.contents.find(x=>x.id===cId); if(!c)return;
+            if(['name','link'].includes(f)) c[f]=v; else c[f]=parseFloat(v)||0;
+            window.saveData(); window.renderTable(window.isFilterTodayActive);
+        };
+        
+        window.toggleDate = (dId,cId,chk) => {
+            let d=window.appData.find(x=>x.id===dId); if(!d)return;
+            let c=d.contents.find(x=>x.id===cId); if(!c)return;
+            c.date = chk ? new Date().toISOString().split('T')[0] : '';
+            window.saveData(); window.renderTable(window.isFilterTodayActive);
+        };
+        
+        window.updateRevStats = (dId,cId,idx,f,v) => {
+            let d=window.appData.find(x=>x.id===dId); if(!d)return;
+            let c=d.contents.find(x=>x.id===cId); if(!c)return;
+            if(!c.revEx)c.revEx=[0,0,0,0,0,0]; if(!c.revAc)c.revAc=[0,0,0,0,0,0];
+            c[f][idx]=parseFloat(v)||0; window.saveData(); window.renderTable(window.isFilterTodayActive);
+        };
+        
+        window.toggleRev = (dId,cId,idx) => {
+            let d=window.appData.find(x=>x.id===dId); if(!d)return;
+            let c=d.contents.find(x=>x.id===cId); if(!c)return;
+            c.revs[idx] = c.revs[idx]?0:1; window.saveData(); window.renderTable(window.isFilterTodayActive);
+        };
+        
+        window.addContent = (dId) => {
+            let d=window.appData.find(x=>x.id===dId); if(!d)return;
+            d.contents.push({ id:'c'+Date.now(), name:'Novo Tópico', cob:0, ex:0, ac:0, date:'', revs:[0,0,0,0,0,0] });
+            d.expanded=true; window.saveData(); window.renderTable(window.isFilterTodayActive);
+        };
+        
+        window.deleteContent = (dId,cId) => {
+            if(!confirm('Excluir?'))return;
+            let d=window.appData.find(x=>x.id===dId); if(!d)return;
+            d.contents = d.contents.filter(x=>x.id!==cId);
+            window.saveData(); window.renderTable(window.isFilterTodayActive);
+        };
+
+        // Link Edit Logic
+        window.enableLinkEdit = (container) => {
+            const view = container.querySelector('.view-mode');
+            const edit = container.querySelector('.edit-mode');
+            view.classList.add('hidden');
+            edit.classList.remove('hidden');
+            edit.focus();
+        };
+
+        window.saveLinkEdit = (input, dId, cId) => {
+            window.updateContent(dId, cId, 'link', input.value);
+            // Table re-renders automatically, fixing visibility
+        };
+
+        window.calcSmartCycle = () => {
+            let list = [];
+            (window.appData || []).forEach(d => d.contents.forEach(c => {
+                let p = c.ex > 0 ? (c.ac/c.ex) : 0.5;
+                let score = (c.cob||0)*1.0 + d.weight*15 + (1-p)*80;
+                list.push({name:c.name, disc:d.name, score});
+            }));
+            list.sort((a,b)=>b.score-a.score);
+            let top = list.slice(0,10);
+            let html = '<div class="space-y-2">';
+            top.forEach((i, idx) => {
+                html += `<div class="p-4 bg-slate-800/50 rounded border-l-4 border-cyan-500 flex justify-between items-center hover:bg-slate-800 transition-colors">
+                    <div><div class="text-[0.65rem] text-cyan-400 uppercase font-mono tracking-wider">${idx+1}. ${i.disc}</div><div class="font-bold text-white text-sm mt-1">${i.name}</div></div>
+                    <div class="text-white font-bold font-mono bg-slate-700 px-3 py-1 rounded text-xs">Prioridade Alta</div>
+                </div>`;
+            });
+            html += '</div>';
+            document.getElementById('smart-content').innerHTML = html;
+            document.getElementById('smart-modal').classList.remove('hidden');
+            document.getElementById('smart-modal').classList.add('flex');
+        };
+        window.closeModal = () => {
+            document.getElementById('smart-modal').classList.add('hidden');
+            document.getElementById('smart-modal').classList.remove('flex');
+        };
+
+        window.switchTab = (t) => {
+            ['dashboard','cycle'].forEach(x => {
+                document.getElementById(`view-${x}`).classList.add('hidden');
+                document.getElementById(`tab-${x}`).classList.remove('active');
+            });
+            document.getElementById(`view-${t}`).classList.remove('hidden');
+            document.getElementById(`tab-${t}`).classList.add('active');
+            if(t==='dashboard') window.updateStats(); else window.renderTable(window.isFilterTodayActive);
+        };
+
+        // ========== CHARTS ==========
+        function initCharts() {
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            const ctxR = document.getElementById('radarChart')?.getContext('2d');
+            if(ctxR) charts.radar = new Chart(ctxR, {
+                type: 'radar',
+                data: { labels:[], datasets:[{ label:'%', data:[], backgroundColor:'rgba(34, 211, 238, 0.2)', borderColor:'#22d3ee', pointBackgroundColor:'#22d3ee', pointBorderColor:'#fff', borderWidth: 2 }] },
+                options: { responsive:true, maintainAspectRatio:false, scales:{ r:{ grid:{ color:'#334155' }, angleLines:{ color:'#334155' }, pointLabels:{ color:'#cbd5e1', font:{size:11, weight:'bold'} }, ticks:{ display:false, backdropColor:'transparent' } } } }
+            });
+            const ctxL = document.getElementById('lineChart')?.getContext('2d');
+            if(ctxL) charts.line = new Chart(ctxL, {
+                type: 'line',
+                data: { labels:['Seg','Ter','Qua','Qui','Sex','Sab','Dom'], datasets:[{ label:'Qtd', data:[0,0,0,0,0,0,0], borderColor:'#10b981', backgroundColor:(ctx)=>{ const g=ctx.chart.ctx.createLinearGradient(0,0,0,200); g.addColorStop(0,'rgba(16,185,129,0.2)'); g.addColorStop(1,'rgba(16,185,129,0)'); return g; }, fill:true, tension:0.4, borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#0f172a', pointBorderColor: '#10b981', pointBorderWidth: 2 }] },
+                options: { responsive:true, maintainAspectRatio:false, scales:{ y:{ grid:{ color:'#334155' }, border:{display:false} }, x:{ grid:{ display:false }, border:{display:false} } }, plugins:{ legend:{ display:false } } }
+            });
+        }
+
+        window.updateStats = function() {
+            let tot=0, ac=0, rev=0, dS={};
+            const today = new Date(); today.setHours(0,0,0,0);
+            (window.appData || []).forEach(d => dS[d.name]={ex:0,ac:0});
+            (window.appData || []).forEach(d => d.contents.forEach(c => {
+                tot+=c.ex||0; ac+=c.ac||0;
+                if(dS[d.name]){ dS[d.name].ex+=c.ex||0; dS[d.name].ac+=c.ac||0; }
+                if(c.date) calculateReviews(c.date).forEach((r,i) => { if(!c.revs[i] && new Date(r.date)<=today) rev++; });
+            }));
+            
+            if(document.getElementById('kpi-total')) document.getElementById('kpi-total').innerText = tot;
+            if(document.getElementById('kpi-perf')) document.getElementById('kpi-perf').innerText = tot>0?((ac/tot)*100).toFixed(0)+'%':'0%';
+            if(document.getElementById('kpi-rev')) document.getElementById('kpi-rev').innerText = rev;
+
+            if(charts.radar) {
+                const lbs = Object.keys(dS);
+                charts.radar.data.labels = lbs;
+                charts.radar.data.datasets[0].data = lbs.map(k => dS[k].ex>0 ? (dS[k].ac/dS[k].ex)*100 : 0);
+                charts.radar.update();
+            }
+        }
+
+        window.onload = function() { initCharts(); };
+    </script>
+</body>
+</html>
