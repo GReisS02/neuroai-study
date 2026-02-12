@@ -9,19 +9,20 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
+<!-- ================= VISUAL SYSTEM v7 ================= -->
+
 <style>
 :root{
 --bg-main:#05070d;
 --bg-panel:#0b0f17;
 --bg-disc:#0f172a;
 --bg-content:#111827;
---bg-rev:#0b1220;
 --border-subtle:#1f2937;
 --border-strong:#334155;
 --accent:#22d3ee;
 --danger:#ef4444;
---warning:#f97316;
 --success:#22c55e;
+--warning:#f97316;
 --text:#f1f5f9;
 --muted:#64748b;
 }
@@ -45,128 +46,129 @@ transition:.2s ease;
 border-color:var(--border-strong);
 }
 
-.tabela-ciclo{
-width:100%;
-border-collapse:separate;
-border-spacing:0;
+.nav-btn{
+background:transparent;
+color:var(--muted);
+padding:8px 18px;
+border-radius:6px;
+font-size:.75rem;
+font-weight:700;
+font-family:'JetBrains Mono';
+transition:.2s;
+}
+
+.nav-btn:hover{color:white}
+
+.nav-btn.active{
+color:var(--accent);
+border:1px solid var(--accent);
+box-shadow:0 0 12px rgba(34,211,238,.4);
 }
 
 .tabela-ciclo th{
-position:sticky;
-top:0;
 background:#0b0f17;
 color:var(--muted);
-padding:12px 8px;
 font-size:.65rem;
 text-transform:uppercase;
 border-bottom:1px solid var(--border-strong);
-font-family:'JetBrains Mono';
 }
 
 .disciplina-row td{
 background:var(--bg-disc);
 font-weight:700;
-border-top:1px solid var(--border-strong);
 }
 
 .conteudo-row td{
 background:var(--bg-content);
 border-bottom:1px solid var(--border-subtle);
-transition:background .15s ease;
+transition:.15s;
 }
 
 .conteudo-row:hover td{
-background:#162033;
+background:#182233;
 }
 
-.revision-cell{
-background:var(--bg-rev);
-}
-
-.input-tech,
-.input-number-tech{
-width:100%;
-background:transparent;
-border:1px solid transparent;
-color:var(--muted);
-border-radius:6px;
-padding:6px;
-transition:.2s ease;
-}
-
-.input-tech:not(:read-only),
-.input-number-tech:not(:read-only){
-border:1px solid var(--accent);
-background:#0b0f17;
-color:white;
-}
-
-.btn-tech{
-background:#111827;
-border:1px solid var(--border-subtle);
-padding:8px 14px;
-border-radius:6px;
-transition:.2s ease;
-}
-
-.btn-tech:hover{
-background:#1f2937;
+.high-risk{
+border-left:4px solid var(--danger);
+box-shadow:0 0 12px rgba(239,68,68,.5);
 }
 
 .btn-primary-tech{
 background:linear-gradient(135deg,#0ea5e9,#6366f1);
-box-shadow:0 0 20px rgba(99,102,241,.4);
-}
-
-.btn-primary-tech:hover{
-transform:translateY(-2px);
-}
-
-.high-risk{
-box-shadow:0 0 12px rgba(239,68,68,.6);
-border-left:4px solid var(--danger);
+box-shadow:0 0 20px rgba(99,102,241,.5);
 }
 
 .trend-up{color:var(--success)}
 .trend-down{color:var(--danger)}
 .trend-neutral{color:var(--muted)}
-
-.autosave-dot{box-shadow:0 0 8px currentColor}
 </style>
 </head>
+
 <body>
 
 <nav class="glass-panel mx-auto max-w-[95%] my-6 px-8 py-4 flex justify-between items-center">
-<h1 class="text-2xl font-bold">NeuroAI <span style="color:var(--accent)">Study</span></h1>
-<button onclick="calcSmartCycle()" class="btn-tech btn-primary-tech">Algoritmo Inteligente</button>
+<h1 class="text-2xl font-bold">
+NeuroAI <span style="color:var(--accent)">Study</span>
+</h1>
+
+<div class="flex gap-4 items-center">
+
+<button id="btn-login-google"
+onclick="firebaseApp.login()"
+class="bg-slate-800 hover:bg-slate-700 px-3 py-1 text-xs rounded">
+Entrar
+</button>
+
+<div id="user-profile-area" class="hidden items-center gap-3">
+<img id="user-avatar" class="w-6 h-6 rounded-full">
+<button onclick="firebaseApp.logout()" class="text-xs">Sair</button>
+</div>
+
+<button onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-btn active">
+Visão Geral
+</button>
+<button onclick="switchTab('cycle')" id="tab-cycle" class="nav-btn">
+Ciclo
+</button>
+
+</div>
 </nav>
 
 <main class="max-w-[95%] mx-auto pb-12">
 
-<div class="glass-panel p-6 mb-6">
-<h2 class="text-sm uppercase tracking-widest text-slate-400 font-mono">Dashboard</h2>
-<div class="grid grid-cols-4 gap-6 mt-4">
-<div>
+<!-- DASHBOARD -->
+<div id="view-dashboard">
+<div class="grid grid-cols-4 gap-6 mb-6">
+<div class="glass-panel p-4">
 <div class="text-xs text-slate-400">Performance</div>
 <div id="kpi-perf" class="text-3xl font-black">0%</div>
 </div>
-<div>
+
+<div class="glass-panel p-4">
 <div class="text-xs text-slate-400">Questões</div>
 <div id="kpi-total" class="text-3xl font-black">0</div>
 </div>
-<div>
+
+<div class="glass-panel p-4">
 <div class="text-xs text-slate-400">Revisões Atrasadas</div>
 <div id="kpi-rev" class="text-3xl font-black">0</div>
 </div>
-<div>
+
+<div class="glass-panel p-4">
 <div class="text-xs text-slate-400">Meta Dinâmica</div>
 <div id="kpi-meta" class="text-3xl font-black">0h</div>
 </div>
 </div>
+
+<div class="glass-panel p-6">
+<canvas id="radarChart" height="100"></canvas>
+</div>
 </div>
 
-<div class="glass-panel overflow-x-auto">
-<table class="tabela-ciclo">
+<!-- CICLO -->
+<div id="view-cycle" class="hidden">
+<div class="glass-panel overflow-x-auto p-4">
+<table class="w-full tabela-ciclo">
 <thead>
 <tr>
 <th>Disciplina</th>
@@ -179,52 +181,45 @@ border-left:4px solid var(--danger);
 <tbody id="table-body"></tbody>
 </table>
 </div>
+</div>
 
 </main>
 
 <script>
 "use strict";
 
+/* ================= CORE ================= */
+
 window.appData = window.appData || [];
 
-function calculatePerf(ex,ac){
-return ex>0?(ac/ex):0;
-}
+/* ========== UTILS ========== */
 
 function perfColor(val){
 let hue = val*120;
 return `hsl(${hue},80%,50%)`;
 }
 
-function calcTrend(basePerf, revPerf){
-if(revPerf>basePerf+0.05)return "up";
-if(revPerf<basePerf-0.05)return "down";
+function calculatePerf(ex,ac){
+return ex>0?(ac/ex):0;
+}
+
+function calcTrend(base,rev){
+if(rev>base+0.05)return "up";
+if(rev<base-0.05)return "down";
 return "neutral";
 }
 
 function calcSmartScore(c,d){
 let perf = calculatePerf(c.ex,c.ac)*100;
-let days = c.date? ( (new Date()-new Date(c.date))/(1000*60*60*24) ):30;
-let score = (100-perf)*d.weight*Math.log(days+1);
-return score;
+let days = c.date? ((new Date()-new Date(c.date))/(1000*60*60*24)):30;
+return (100-perf)*d.weight*Math.log(days+1);
 }
+
+/* ========== RENDER ========== */
 
 window.renderTable=function(){
 const tbody=document.getElementById("table-body");
 tbody.innerHTML="";
-let worstPerf=1;
-
-window.appData.forEach(d=>{
-let discEx=0,discAc=0;
-
-d.contents.forEach(c=>{
-discEx+=c.ex||0;
-discAc+=c.ac||0;
-});
-
-let discPerf=calculatePerf(discEx,discAc);
-if(discPerf<worstPerf)worstPerf=discPerf;
-});
 
 window.appData.forEach(d=>{
 let discEx=0,discAc=0;
@@ -249,16 +244,15 @@ tbody.appendChild(tr);
 
 d.contents.forEach(c=>{
 let perf=calculatePerf(c.ex,c.ac);
-let revPerf = (c.revAc?.reduce((a,b)=>a+b,0)||0)/(c.revEx?.reduce((a,b)=>a+b,1)||1);
+let revPerf=(c.revAc?.reduce((a,b)=>a+b,0)||0)/(c.revEx?.reduce((a,b)=>a+b,1)||1);
 let trend=calcTrend(perf,revPerf);
-
-let row=document.createElement("tr");
-row.className="conteudo-row";
 
 let risk=false;
 if(perf<0.6)risk=true;
 if((c.revs||[]).filter(r=>!r).length>=3)risk=true;
 
+let row=document.createElement("tr");
+row.className="conteudo-row";
 if(risk)row.classList.add("high-risk");
 
 row.innerHTML=`
@@ -278,6 +272,8 @@ tbody.appendChild(row);
 updateStats();
 };
 
+/* ========== STATS ========== */
+
 function updateStats(){
 let tot=0,ac=0,rev=0;
 
@@ -292,10 +288,10 @@ if((c.revs||[]).filter(r=>!r).length>=1)rev++;
 document.getElementById("kpi-total").innerText=tot;
 document.getElementById("kpi-perf").innerText=tot>0?((ac/tot)*100).toFixed(0)+"%":"0%";
 document.getElementById("kpi-rev").innerText=rev;
-
-let weekly=Math.round(tot/4);
-document.getElementById("kpi-meta").innerText=weekly+"h";
+document.getElementById("kpi-meta").innerText=Math.round(tot/4)+"h";
 }
+
+/* ========== SMART ========== */
 
 window.calcSmartCycle=function(){
 let list=[];
@@ -305,8 +301,22 @@ list.push({name:c.name,disc:d.name,score:calcSmartScore(c,d)});
 });
 });
 list.sort((a,b)=>b.score-a.score);
-alert("Top prioridade: "+list[0]?.name);
+alert("Top prioridade: "+(list[0]?.name||"Nenhuma"));
 };
+
+/* ========== TABS ========== */
+
+window.switchTab=function(tab){
+document.getElementById("view-dashboard").classList.add("hidden");
+document.getElementById("view-cycle").classList.add("hidden");
+document.getElementById("tab-dashboard").classList.remove("active");
+document.getElementById("tab-cycle").classList.remove("active");
+
+document.getElementById("view-"+tab).classList.remove("hidden");
+document.getElementById("tab-"+tab).classList.add("active");
+};
+
+/* ========== INIT ========== */
 
 window.onload=function(){
 renderTable();
