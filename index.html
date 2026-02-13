@@ -76,6 +76,7 @@
                             window.renderTable(window.isFilterTodayActive, true); 
                             window.updateStats();
                             window.updateHeatmap();
+                            window.updateLast7Days();
                         } catch (e) { console.error("Erro dados", e); }
                     }
                 } else { window.saveData(true); }
@@ -83,7 +84,7 @@
         }
 
         window.saveData = async function() {
-            try { localStorage.setItem('neuro_fiscal_v7', JSON.stringify(window.appData)); } catch(e) {}
+            try { localStorage.setItem('neuro_fiscal_v8', JSON.stringify(window.appData)); } catch(e) {}
             if (!userId) return;
             const docRef = doc(db, 'artifacts', appId, 'users', userId, 'data', 'study_cycle');
             try {
@@ -150,6 +151,31 @@
             --accent-purple: #8b5cf6;
             --accent-purple-bg: rgba(139, 92, 246, 0.15);
             
+            /* Cores das Revisões - Mais suaves */
+            --rev-r1: #4285f4;
+            --rev-r1-bg: rgba(66, 133, 244, 0.08);
+            --rev-r1-row: rgba(66, 133, 244, 0.03);
+            
+            --rev-r7: #fbbc04;
+            --rev-r7-bg: rgba(251, 188, 4, 0.08);
+            --rev-r7-row: rgba(251, 188, 4, 0.03);
+            
+            --rev-r15: #ea4335;
+            --rev-r15-bg: rgba(234, 67, 53, 0.08);
+            --rev-r15-row: rgba(234, 67, 53, 0.03);
+            
+            --rev-r30: #34a853;
+            --rev-r30-bg: rgba(52, 168, 83, 0.08);
+            --rev-r30-row: rgba(52, 168, 83, 0.03);
+            
+            --rev-r60: #8b5cf6;
+            --rev-r60-bg: rgba(139, 92, 246, 0.08);
+            --rev-r60-row: rgba(139, 92, 246, 0.03);
+            
+            --rev-r90: #ec4899;
+            --rev-r90-bg: rgba(236, 72, 153, 0.08);
+            --rev-r90-row: rgba(236, 72, 153, 0.03);
+            
             /* Shadows */
             --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
             --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
@@ -176,7 +202,7 @@
 
         /* ===== SIDEBAR ===== */
         .sidebar {
-            width: 280px;
+            width: 260px;
             background-color: var(--bg-sidebar);
             border-right: 1px solid var(--border-light);
             display: flex;
@@ -217,29 +243,18 @@
             margin-bottom: 8px;
         }
 
-        .nav-section-title {
-            font-size: 0.7rem;
-            color: var(--text-tertiary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 0 12px;
-            margin-bottom: 8px;
-            margin-top: 24px;
-            font-weight: 600;
-        }
-
         .nav-item {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 10px 12px;
+            padding: 12px 16px;
             border-radius: 8px;
             color: var(--text-secondary);
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.15s ease;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
 
         .nav-item:hover {
@@ -254,8 +269,8 @@
         }
 
         .nav-item svg {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             stroke-width: 1.8;
         }
 
@@ -379,6 +394,133 @@
             margin-bottom: 4px;
         }
 
+        /* ===== MEU DESEMPENHO CARD ===== */
+        .performance-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .performance-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        .performance-main {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            margin-bottom: 24px;
+        }
+
+        .performance-percentage {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .percentage-label {
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            margin-top: 4px;
+        }
+
+        .performance-stats {
+            display: flex;
+            gap: 32px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stat-green {
+            color: var(--accent-green);
+        }
+
+        .stat-red {
+            color: var(--accent-red);
+        }
+
+        .evolution-chart-container {
+            height: 80px;
+            margin-top: 16px;
+        }
+
+        /* ===== HEATMAP ===== */
+        .heatmap-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .heatmap-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+            max-width: 300px;
+        }
+
+        .heatmap-cell {
+            aspect-ratio: 1;
+            border-radius: 3px;
+            background: var(--bg-tertiary);
+            transition: all 0.15s ease;
+            width: 24px;
+            height: 24px;
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.15);
+            border: 1px solid var(--accent-blue);
+        }
+
+        .heatmap-legend {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 0.6rem;
+            color: var(--text-tertiary);
+        }
+
+        .legend-colors {
+            display: flex;
+            gap: 2px;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+
         /* ===== TABLE STYLES ===== */
         .table-container {
             border: 1px solid var(--border-light);
@@ -386,22 +528,23 @@
             overflow: auto;
             background: var(--bg-card);
             box-shadow: var(--shadow-sm);
+            max-height: 70vh;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1400px;
-            font-size: 0.85rem;
+            min-width: 1600px;
+            font-size: 0.8rem;
         }
 
         th {
             background: var(--bg-secondary);
             color: var(--text-secondary);
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: 600;
             text-align: center;
-            padding: 16px 8px;
+            padding: 12px 4px;
             border-bottom: 1px solid var(--border-light);
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -409,7 +552,7 @@
         }
 
         td {
-            padding: 12px 8px;
+            padding: 8px 4px;
             border-bottom: 1px solid var(--border-light);
             color: var(--text-primary);
             vertical-align: middle;
@@ -420,18 +563,73 @@
             background: linear-gradient(90deg, var(--bg-tertiary), var(--bg-card));
             font-weight: 600;
             border-bottom: 1px solid var(--border-active);
+            font-size: 0.85rem;
         }
 
         .tr-disciplina:hover td {
             background: linear-gradient(90deg, var(--bg-hover), var(--bg-tertiary));
         }
 
-        /* Content Row */
+        /* Content Row - Cores por revisão (esmaecidas) */
         .tr-conteudo td {
             background: var(--bg-card);
+            transition: background 0.15s ease;
         }
 
         .tr-conteudo:hover td {
+            background: var(--bg-secondary);
+        }
+
+        /* Cores suaves nas células de revisão */
+        .rev-cell-r1 { background-color: var(--rev-r1-row); }
+        .rev-cell-r7 { background-color: var(--rev-r7-row); }
+        .rev-cell-r15 { background-color: var(--rev-r15-row); }
+        .rev-cell-r30 { background-color: var(--rev-r30-row); }
+        .rev-cell-r60 { background-color: var(--rev-r60-row); }
+        .rev-cell-r90 { background-color: var(--rev-r90-row); }
+
+        /* ===== REVISÕES HEADERS COM CORES ===== */
+        .rev-header {
+            font-weight: 700;
+            border-bottom: 2px solid transparent;
+            font-size: 0.7rem;
+        }
+
+        .rev-header-r1 { 
+            color: var(--rev-r1); 
+            border-bottom-color: var(--rev-r1);
+            background: var(--rev-r1-bg);
+        }
+        .rev-header-r7 { 
+            color: var(--rev-r7); 
+            border-bottom-color: var(--rev-r7);
+            background: var(--rev-r7-bg);
+        }
+        .rev-header-r15 { 
+            color: var(--rev-r15); 
+            border-bottom-color: var(--rev-r15);
+            background: var(--rev-r15-bg);
+        }
+        .rev-header-r30 { 
+            color: var(--rev-r30); 
+            border-bottom-color: var(--rev-r30);
+            background: var(--rev-r30-bg);
+        }
+        .rev-header-r60 { 
+            color: var(--rev-r60); 
+            border-bottom-color: var(--rev-r60);
+            background: var(--rev-r60-bg);
+        }
+        .rev-header-r90 { 
+            color: var(--rev-r90); 
+            border-bottom-color: var(--rev-r90);
+            background: var(--rev-r90-bg);
+        }
+
+        .rev-subheader {
+            font-size: 0.55rem;
+            font-weight: 400;
+            color: var(--text-tertiary);
             background: var(--bg-secondary);
         }
 
@@ -440,9 +638,9 @@
             background: transparent;
             border: 1px solid transparent;
             color: var(--text-primary);
-            font-size: 0.85rem;
-            padding: 6px 8px;
-            border-radius: 6px;
+            font-size: 0.8rem;
+            padding: 4px 6px;
+            border-radius: 4px;
             width: 100%;
             outline: none;
             transition: all 0.15s ease;
@@ -468,14 +666,14 @@
         }
 
         .input-mini {
-            width: 36px;
-            height: 28px;
-            font-size: 0.7rem;
+            width: 32px;
+            height: 24px;
+            font-size: 0.65rem;
             text-align: center;
             background: var(--bg-tertiary);
             border: 1px solid var(--border-light);
             color: var(--text-primary);
-            border-radius: 4px;
+            border-radius: 3px;
             outline: none;
             transition: all 0.15s ease;
             font-family: 'JetBrains Mono', monospace;
@@ -489,19 +687,19 @@
 
         /* ===== STATUS DOTS ===== */
         .status-dot {
-            width: 24px;
-            height: 24px;
-            border-radius: 6px;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
             margin: 0 auto;
             cursor: pointer;
             transition: all 0.2s ease;
             border: 1px solid transparent;
+            position: relative;
         }
 
         .status-dot.done {
             background: var(--accent-green-bg);
             border-color: var(--accent-green);
-            position: relative;
         }
 
         .status-dot.done::after {
@@ -511,7 +709,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 14px;
+            font-size: 12px;
             font-weight: bold;
         }
 
@@ -535,10 +733,10 @@
         /* ===== CHECKBOX ===== */
         .checkbox-clean {
             appearance: none;
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             border: 2px solid var(--border-light);
-            border-radius: 5px;
+            border-radius: 4px;
             background: var(--bg-tertiary);
             cursor: pointer;
             position: relative;
@@ -557,7 +755,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 12px;
+            font-size: 10px;
             font-weight: bold;
         }
 
@@ -567,9 +765,9 @@
 
         /* ===== BUTTONS ===== */
         .btn {
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.8rem;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
             font-weight: 500;
             cursor: pointer;
             border: 1px solid transparent;
@@ -577,7 +775,7 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
             letter-spacing: 0.01em;
         }
 
@@ -620,8 +818,8 @@
         }
 
         .btn-icon {
-            padding: 6px;
-            border-radius: 6px;
+            padding: 4px;
+            border-radius: 4px;
             background: transparent;
             color: var(--text-tertiary);
             transition: all 0.15s ease;
@@ -638,13 +836,13 @@
         .link-view {
             color: var(--accent-blue-light);
             text-decoration: none;
-            font-size: 0.75rem;
-            padding: 4px 8px;
-            border-radius: 4px;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 3px;
             background: var(--accent-blue-bg);
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
         }
 
         .link-view:hover {
@@ -712,28 +910,6 @@
             font-size: 0.8em;
         }
 
-        /* ===== HEATMAP ===== */
-        .heatmap-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
-            padding: 16px;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-        }
-
-        .heatmap-cell {
-            aspect-ratio: 1;
-            border-radius: 4px;
-            background: var(--bg-tertiary);
-            transition: all 0.15s ease;
-        }
-
-        .heatmap-cell:hover {
-            transform: scale(1.15);
-            border: 1px solid var(--accent-blue);
-        }
-
         /* ===== ANIMATIONS ===== */
         @keyframes spin {
             from { transform: rotate(0deg); }
@@ -744,33 +920,30 @@
             animation: spin 1s linear infinite;
         }
 
-        .animate-pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        /* ===== LAYOUT UTILITIES ===== */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
         }
 
-        /* ===== UTILITIES ===== */
-        .text-accent-blue { color: var(--accent-blue); }
-        .text-accent-green { color: var(--accent-green); }
-        .text-accent-yellow { color: var(--accent-yellow); }
-        .text-accent-red { color: var(--accent-red); }
-        .text-accent-purple { color: var(--accent-purple); }
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
 
-        .bg-accent-blue-bg { background: var(--accent-blue-bg); }
-        .bg-accent-green-bg { background: var(--accent-green-bg); }
-        .bg-accent-yellow-bg { background: var(--accent-yellow-bg); }
-        .bg-accent-red-bg { background: var(--accent-red-bg); }
-        .bg-accent-purple-bg { background: var(--accent-purple-bg); }
-
-        .border-accent-blue { border-color: var(--accent-blue); }
-        .border-accent-green { border-color: var(--accent-green); }
-        .border-accent-yellow { border-color: var(--accent-yellow); }
-        .border-accent-red { border-color: var(--accent-red); }
-        .border-accent-purple { border-color: var(--accent-purple); }
+        .page-subtitle {
+            color: var(--text-tertiary);
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
 
-    <!-- SIDEBAR - FIREBASE DARK -->
+    <!-- SIDEBAR -->
     <aside class="sidebar">
         <div class="logo-area">
             <div class="logo-icon">
@@ -784,45 +957,22 @@
 
         <nav style="flex: 1;">
             <div class="nav-section">
-                <div class="nav-item active" id="nav-dashboard" onclick="window.switchTab('dashboard')">
+                <div class="nav-item active" id="nav-estatisticas" onclick="window.switchTab('estatisticas')">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                     </svg>
-                    Dashboard
+                    Estatísticas
                 </div>
-                <div class="nav-item" id="nav-cycle" onclick="window.switchTab('cycle')">
+                <div class="nav-item" id="nav-estudos" onclick="window.switchTab('estudos')">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                     </svg>
-                    Ciclo de Estudos
+                    Estudos
                 </div>
-            </div>
-            
-            <div class="nav-section-title">Análise</div>
-            <div class="nav-item">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                </svg>
-                Estatísticas
-            </div>
-            <div class="nav-item">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
-                </svg>
-                Desempenho
-            </div>
-            
-            <div class="nav-section-title">Ferramentas</div>
-            <div class="nav-item opacity-60 cursor-not-allowed">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-                Configurações
             </div>
         </nav>
 
-        <!-- STATUS & USER AREA -->
+        <!-- STATUS AREA -->
         <div class="status-area">
             <div id="user-profile" class="user-profile" style="display: none;">
                 <img id="user-avatar" class="user-avatar" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/anonymous.svg">
@@ -849,12 +999,12 @@
     <!-- MAIN CONTENT -->
     <main class="main-content">
         
-        <!-- DASHBOARD -->
-        <div id="view-dashboard">
+        <!-- ESTATÍSTICAS (antigo Dashboard) -->
+        <div id="view-estatisticas">
             <div class="flex justify-between items-center mb-8">
                 <div>
-                    <h2 class="text-2xl font-bold text-white">Dashboard</h2>
-                    <p class="text-sm text-gray-400 mt-1">Acompanhe seu progresso e desempenho</p>
+                    <h1 class="page-title">Estatísticas</h1>
+                    <p class="page-subtitle">Acompanhe seu progresso e desempenho</p>
                 </div>
                 <button onclick="window.consultCoach()" class="btn btn-ai">
                     <span>✨</span> NeuroCoach IA
@@ -895,13 +1045,56 @@
                 </div>
             </div>
 
-            <!-- HEATMAP DE CONSTÂNCIA -->
-            <div class="card mb-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-sm font-semibold text-white">Constância Diária</h3>
-                    <span class="text-xs text-gray-500">Últimos 30 dias</span>
+            <!-- HEATMAP + MEU DESEMPENHO -->
+            <div class="dashboard-grid">
+                <!-- HEATMAP DE CONSTÂNCIA -->
+                <div class="heatmap-container">
+                    <div class="heatmap-title">📊 Constância Diária</div>
+                    <div id="heatmap-grid" class="heatmap-grid"></div>
+                    <div class="heatmap-legend">
+                        <span>Menos</span>
+                        <div class="legend-colors">
+                            <div class="legend-color" style="background: #2a2b2e;"></div>
+                            <div class="legend-color" style="background: #0b4f2c;"></div>
+                            <div class="legend-color" style="background: #0e6a3a;"></div>
+                            <div class="legend-color" style="background: #118c4a;"></div>
+                            <div class="legend-color" style="background: #14a85a;"></div>
+                            <div class="legend-color" style="background: #34d399;"></div>
+                        </div>
+                        <span>Mais</span>
+                    </div>
                 </div>
-                <div id="heatmap-container" class="heatmap-grid"></div>
+
+                <!-- MEU DESEMPENHO - ÚLTIMOS 7 DIAS -->
+                <div class="performance-card">
+                    <div class="performance-title">📈 Meu Desempenho · Últimos 7 dias</div>
+                    
+                    <div class="performance-main">
+                        <div>
+                            <div class="performance-percentage" id="perf-7days">0.00%</div>
+                            <div class="percentage-label">Aproveitamento</div>
+                        </div>
+                        
+                        <div class="performance-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Resoluções</span>
+                                <span class="stat-value" id="stats-resolucoes">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Acertos</span>
+                                <span class="stat-value stat-green" id="stats-acertos">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Erros</span>
+                                <span class="stat-value stat-red" id="stats-erros">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="evolution-chart-container">
+                        <canvas id="evolutionChart"></canvas>
+                    </div>
+                </div>
             </div>
 
             <!-- CHARTS GRID -->
@@ -927,12 +1120,12 @@
             </div>
         </div>
 
-        <!-- CYCLE VIEW -->
-        <div id="view-cycle" style="display: none;">
+        <!-- ESTUDOS -->
+        <div id="view-estudos" style="display: none;">
             <div class="flex justify-between items-center mb-6">
                 <div>
-                    <h2 class="text-2xl font-bold text-white">Ciclo de Estudos</h2>
-                    <p class="text-sm text-gray-400 mt-1">Gerencie disciplinas, tópicos e revisões</p>
+                    <h1 class="page-title">Ciclo de Estudos</h1>
+                    <p class="page-subtitle">Plano completo para concursos fiscais</p>
                 </div>
                 <div class="flex gap-3">
                     <button onclick="window.showInlineAddDiscipline()" class="btn btn-primary">
@@ -965,39 +1158,57 @@
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 30px;"></th>
-                            <th class="text-left" style="min-width: 260px;">DISCIPLINA / TÓPICO</th>
-                            <th style="width: 70px;">REL %</th>
-                            <th style="width: 60px;">PESO</th>
-                            <th style="width: 70px;">QTD</th>
-                            <th style="width: 70px;">ACERT</th>
-                            <th style="width: 70px;" class="text-blue-400">%</th>
-                            <th style="width: 80px;">LINK</th>
-                            <th style="width: 50px;">OK</th>
+                            <th style="width: 20px;"></th>
+                            <th class="text-left" style="min-width: 250px;">DISCIPLINA / TÓPICO</th>
+                            <th style="width: 60px;">REL %</th>
+                            <th style="width: 50px;">PESO</th>
+                            <th style="width: 60px;">QTD</th>
+                            <th style="width: 60px;">ACERT</th>
+                            <th style="width: 60px;" class="text-blue-400">%</th>
+                            <th style="width: 70px;">LINK</th>
+                            <th style="width: 50px;">EST</th>
                             
-                            <!-- REVISÕES -->
-                            <th style="width: 40px;" class="border-l border-gray-700">R1</th>
-                            <th style="width: 90px;">Q/A/%</th>
+                            <!-- REVISÕES COM CORES -->
+                            <th colspan="2" class="rev-header rev-header-r1">R1</th>
+                            <th colspan="2" class="rev-header rev-header-r7">R7</th>
+                            <th colspan="2" class="rev-header rev-header-r15">R15</th>
+                            <th colspan="2" class="rev-header rev-header-r30">R30</th>
+                            <th colspan="2" class="rev-header rev-header-r60">R60</th>
+                            <th colspan="2" class="rev-header rev-header-r90">R90</th>
                             
-                            <th style="width: 40px;" class="border-l border-gray-700">R7</th>
-                            <th style="width: 90px;">Q/A/%</th>
+                            <th style="width: 40px;"></th>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
                             
-                            <th style="width: 40px;" class="border-l border-gray-700">R15</th>
-                            <th style="width: 90px;">Q/A/%</th>
+                            <!-- Subheaders -->
+                            <th class="rev-subheader">S</th>
+                            <th class="rev-subheader">Q/A/%</th>
+                            <th class="rev-subheader">S</th>
+                            <th class="rev-subheader">Q/A/%</th>
+                            <th class="rev-subheader">S</th>
+                            <th class="rev-subheader">Q/A/%</th>
+                            <th class="rev-subheader">S</th>
+                            <th class="rev-subheader">Q/A/%</th>
+                            <th class="rev-subheader">S</th>
+                            <th class="rev-subheader">Q/A/%</th>
+                            <th class="rev-subheader">S</th>
+                            <th class="rev-subheader">Q/A/%</th>
                             
-                            <th style="width: 40px;" class="border-l border-gray-700">R30</th>
-                            <th style="width: 90px;">Q/A/%</th>
-                            
-                            <th style="width: 40px;" class="border-l border-gray-700">R60</th>
-                            <th style="width: 90px;">Q/A/%</th>
-                            
-                            <th style="width: 40px;" class="border-l border-gray-700">R90</th>
-                            <th style="width: 90px;">Q/A/%</th>
-                            
-                            <th style="width: 50px;"></th>
+                            <th></th>
                         </tr>
                     </thead>
-                    <tbody id="table-body"></tbody>
+                    <tbody id="table-body">
+                        <!-- Dados carregados via JavaScript -->
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -1030,27 +1241,209 @@
         "use strict";
         const apiKey = ""; // Adicione sua chave da API Gemini aqui
 
+        // ===== DADOS DA PLANILHA TECCONCURSOS =====
+        const TECCONCURSOS_DATA = [
+    {
+        disciplina: "ADMINISTRAÇÃO FINANCEIRA E ORÇAMENTÁRIA",
+        peso: 2,
+        topicos: [
+            "Instrumentos Orçamentários: PPA/ LDO/ LOA. - Bloco II",
+            "Lei Complementar nº 101/2000: - Bloco VII",
+            "Orçamento Público: Conceitos e Classificações. - Bloco I",
+            "Despesa pública. - Bloco V",
+            "Receita pública. - Bloco IV",
+            "Lei Complementar nº 101/2000: - Bloco VIII",
+            "Créditos ordinários e adicionais. - Bloco III"
+        ]
+    },
+    {
+        disciplina: "AUDITORIA FISCAL",
+        peso: 2,
+        topicos: [
+            "Testes em áreas específicas das Demonstrações Contábeis - Bloco VI",
+            "NFe e EFD - Bloco VII",
+            "Testes e Procedimentos em Auditoria - Bloco III",
+            "Materialidade, Relevância e Risco / Evidência em Auditoria - Bloco II",
+            "Normas Profissionais do Auditor Independente / Planejamento de Auditoria Independente - Bloco I",
+            "Opinião do auditor /Relatórios e Pareceres de Auditoria - Bloco V",
+            "Fraude e Erro (Auditoria) - Bloco IV"
+        ]
+    },
+    {
+        disciplina: "CONTABILIDADE DE CUSTOS",
+        peso: 2,
+        topicos: [
+            "Custeio por Absorção: - Bloco II",
+            "Custos para Decisão: p1 - Bloco III",
+            "Custos para Decisão: p2 - Bloco IV",
+            "Custos: - Bloco I"
+        ]
+    },
+    {
+        disciplina: "CONTABILIDADE GERAL",
+        peso: 2,
+        topicos: [
+            "Demonstrações Contábeis: p2 - Bloco IX",
+            "Ativo: p1 - Bloco III",
+            "Demonstrações Contábeis: p1 - Bloco VIII",
+            "Conceito, Objeto, Finalidade, Técnicas Contábeis, Equação patrimonial / Regimes Contábeis (competência, caixa e misto) - Bloco I",
+            "Estoques: - Bloco II",
+            "Demonstrações Contábeis: p3 - Bloco X",
+            "Passivo exigível: - Bloco VI",
+            "Ativo: p2 - Bloco IV"
+        ]
+    },
+    {
+        disciplina: "DIREITO TRIBUTÁRIO",
+        peso: 2,
+        topicos: [
+            "Limitações Constitucionais ao Poder de Tributar (arts. 150 a 152 - CF/88) - Bloco II",
+            "Tributos (arts. 03-08, 16-18, 76-82 - CTN) - Bloco I",
+            "Garantias e Privilégios do Crédito Tributário (arts. 183 ao 193 - CTN) / Administração Tributária (arts. 194 ao 208; 210 - CTN) - Bloco VIII",
+            "Obrigação Tribut. (arts. 119 ao 138 - CTN) / Solidariedade (arts. 124 e 125 do CTN) p1 - Bloco V",
+            "Impostos de Competência dos Estados (art. 155 - CF/88) - Bloco X",
+            "Lançamento e Constituição do Crédito (arts. 142-150-CTN) / Suspensão do Crédito Tributário (arts. 151-155) - Bloco VI",
+            "Extinção do Crédito Tribut. (arts. 156-174) / Exclusão do Crédito Tribut. (arts. 175-182) - Bloco VII",
+            "Legislação Tributária (arts. 96-112 - CTN) / Obrigação Tributária (arts. 113-118 - CTN) - Bloco IV",
+            "Competência Tributária - Bloco III",
+            "Impostos de Competência dos Municípios (art. 156 - CF/88) - Bloco IX"
+        ]
+    },
+    {
+        disciplina: "LEGISLAÇÃO TRIBUTÁRIA ESTADUAL",
+        peso: 2,
+        topicos: [
+            "ICMS (CF/1988) p1 - Bloco I",
+            "ICMS (CF/1988) p2 - Bloco II",
+            "SIMPLES Nacional (LC nº 123/2006) - Bloco V",
+            "IPVA (CF/1988) - Bloco III",
+            "ITCMD (CF/1988) - Bloco IV",
+            "Lei Complementar nº 24/1975 (CONFAZ) / Lei Complementar nº 160/2017 (remissão dos créditos tributários) - Bloco VI"
+        ]
+    },
+    {
+        disciplina: "LEGISLAÇÃO TRIBUTÁRIA MUNICIPAL",
+        peso: 2,
+        topicos: [
+            "ISS (CF/1988) - Bloco I",
+            "IPTU (CF/1988) - Bloco III",
+            "SIMPLES Nacional (LC nº 123/2006) - Bloco V",
+            "ITBI (CF/1988) - Bloco IV"
+        ]
+    },
+    {
+        disciplina: "DIREITO ADMINISTRATIVO",
+        peso: 1,
+        topicos: [
+            "Poderes da administração pública. / Atos Administrativos. - Bloco II",
+            "Servidores Públicos na CF/88. / Serviços Públicos. - Bloco IV",
+            "Lei nº 8.429/1992 (LIA). - Bloco V",
+            "Lei nº 9.784/1999 (Processo Administrativo Federal). / Licitações (Lei nº 14.133/2021) - Bloco VI",
+            "Responsabilidade Civil do Estado. (Jurisprudência) / Controle da Administração Pública. (Jurisprudência) - Bloco III",
+            "Princípios Administrativos. / Organização Administrativa. / Entidades do 3º Setor. - Bloco I"
+        ]
+    },
+    {
+        disciplina: "DIREITO CIVIL",
+        peso: 1,
+        topicos: [
+            "Do Direito das Obrigações: - Bloco VI",
+            "Bens imóveis, móveis e públicos: / Responsabilidade civil objetiva e subjetiva. - Bloco IV",
+            "Do Direito das Coisas (arts. 1.196 a 1.510) / Dos Direitos Reais (arts. 1.225 a 1.510) - Bloco VII",
+            "Das Pessoas Naturais (arts. 1º a 39): / Das Pessoas Jurídicas (arts. 40 a 69): - Bloco I",
+            "Lei de Introdução às Normas do Direito Brasileiro (LINDB) - Bloco VIII",
+            "Dos Contratos em Geral: / Dos Contratos em Espécie: - Bloco V",
+            "Prescrição. Decadência. - Bloco III",
+            "Negócio Jurídico (arts. 104 a 184): / Prescrição. Decadência. - Bloco II"
+        ]
+    },
+    {
+        disciplina: "DIREITO CONSTITUCIONAL",
+        peso: 1,
+        topicos: [
+            "Controle de Constitucionalidade / Eficácia das Normas Constitucionais - Bloco IX",
+            "Direitos e Garantias Fundamentais (arts. 5-17) p1 - Blocos I",
+            "Do Poder Legislativo (arts. 44 a 75):/ Do Processo Legislativo (arts. 59 a 69): / Da Fiscalização COFOP (arts. 70 a 75) - Bloco V",
+            "Do Poder Executivo (arts. 76 a 91): / Poder Judiciário (arts. 92 a 105): - Bloco VI",
+            "Do Sistema Tributário Nacional (arts. 145 a 162):/ Das Finanças Públicas (arts. 163 a 169): - Bloco VII",
+            "Direitos e Garantias Fundamentais (arts. 5-17) p2 - Blocos II",
+            "Da Administração Pública (arts. 37 a 41) - Bloco IV",
+            "Da Organização do Estado (arts. 18 a 36) - Bloco III",
+            "Da Ordem econômica e financeira (arts. 170 a 192) - Bloco VIII"
+        ]
+    },
+    {
+        disciplina: "DIREITO EMPRESARIAL",
+        peso: 1,
+        topicos: [
+            "Do Empresário (arts. 966 a 980 do CC) - Bloco I",
+            "Sociedade Limitada (arts. 1.052 a 1.087 do CC) - Bloco III",
+            "Sociedades Não Personificadas (arts. 986 a 996 do CC): / Sociedade Personificada (arts. 997 a 1.141 do CC) - Bloco II"
+        ]
+    },
+    {
+        disciplina: "DIREITO PENAL",
+        peso: 1,
+        topicos: [
+            "Dos Crimes contra a Administração Pública (arts. 312 a 337-A - Código Penal): / Dos Crimes praticados por Funcionário Público (arts. 312 a 327 do CP) - Bloco I",
+            "Da Teoria do Crime / O fato típico e seus elementos / Concurso de crimes. Ilicitude e causas de exclusão. / Culpabilidade. Elementos e causas de exclusão. - Bloco VI",
+            "Dos Crimes contra a Fé Pública (arts. 293 a 311-A - Código Penal): / Da Falsidade Documental (arts. 296-305-CP) - Bloco IV",
+            "Lei nº 8.137/1990 - Crimes contra a Ordem Tributária, Econômica e Relações de Consumo - Bloco III",
+            "Da Aplicação da Lei penal (arts. 01° ao 12 do CP) e Princípios do Direito Penal. - Bloco V"
+        ]
+    },
+    {
+        disciplina: "PORTUGUÊS",
+        peso: 1,
+        topicos: [
+            "Interpretação e Compreensão de Textos p1 - Bloco VI",
+            "Interpretação e Compreensão de Textos p2 - Bloco VIII",
+            "Interpretação e Compreensão de Textos p3 - Bloco VIII",
+            "Concordância (Verbal e Nominal) - Bloco IV",
+            "Reescrita de Frases (Substituição de palavras/ trechos de texto). - Bloco V"
+        ]
+    }
+];
+
         window.appData = [];
         window.isFilterTodayActive = false;
         const charts = {};
-        
-        const SEED_DATA = [
-            {
-                id: 'd1', name: 'Direito Tributário', weight: 3, expanded: true,
-                contents: [
-                    { id: 'c1', name: 'Competência Tributária', cob: 85, ex: 45, ac: 38, date: new Date().toISOString().split('T')[0], revs: [0,0,0,0,0,0], revEx:[15,0,0,0,0,0], revAc:[14,0,0,0,0,0] },
-                    { id: 'c2', name: 'Impostos em Espécie', cob: 90, ex: 30, ac: 15, date: '2023-11-01', link: 'https://www.google.com', revs: [1,0,0,0,0,0], revEx:[10,0,0,0,0,0], revAc:[8,0,0,0,0,0] }
-                ]
-            },
-            {
-                id: 'd2', name: 'Contabilidade Geral', weight: 3, expanded: false,
-                contents: [
-                    { id: 'c3', name: 'CPC 00 - Estrutura Conceitual', cob: 70, ex: 20, ac: 19, date: '2023-10-25', revs: [1,1,1,0,0,0], revEx:[5,5,5,0,0,0], revAc:[5,4,5,0,0,0] }
-                ]
-            }
-        ];
 
         const REVISION_INTERVALS = [1, 7, 15, 30, 60, 90];
+
+        // ===== INICIALIZAR DADOS DA PLANILHA =====
+        function initializeFromSpreadsheet() {
+            const disciplines = [];
+            
+            TECCONCURSOS_DATA.forEach((item, index) => {
+                const disciplineId = 'd' + (index + 1);
+                const contents = [];
+                
+                item.topicos.forEach((topico, tIndex) => {
+                    contents.push({
+                        id: 'c' + disciplineId + tIndex,
+                        name: topico, // Já inclui " - Bloco X" conforme solicitado
+                        cob: 0, // % de cobrança será preenchido manualmente
+                        ex: 0,
+                        ac: 0,
+                        date: '',
+                        revs: [0,0,0,0,0,0],
+                        revEx: [0,0,0,0,0,0],
+                        revAc: [0,0,0,0,0,0]
+                    });
+                });
+                
+                disciplines.push({
+                    id: disciplineId,
+                    name: item.disciplina,
+                    weight: item.peso,
+                    expanded: false,
+                    contents: contents
+                });
+            });
+            
+            return disciplines;
+        }
 
         // ===== GEMINI API =====
         async function callGemini(prompt) {
@@ -1125,11 +1518,10 @@
                 disciplina: d.name,
                 peso: d.weight,
                 topicos: d.contents.map(c => ({
-                    nome: c.name,
+                    nome: c.name.split(' - ')[0], // Pega só o nome sem o bloco
                     questoes: c.ex || 0,
                     acertos: c.ac || 0,
-                    percentual: c.ex > 0 ? ((c.ac/c.ex)*100).toFixed(0) : 0,
-                    relevancia: c.cob || 0
+                    percentual: c.ex > 0 ? ((c.ac/c.ex)*100).toFixed(0) : 0
                 }))
             }));
 
@@ -1140,7 +1532,7 @@
             Identifique os 3 tópicos com MAIOR PRIORIDADE baseado em:
             1. Baixo desempenho (% de acerto)
             2. Alto peso da disciplina
-            3. Alta relevância no edital
+            3. Quantidade de questões baixa
 
             Retorne APENAS um JSON array válido com esta estrutura:
             [
@@ -1197,7 +1589,10 @@
             document.getElementById('smart-loading').style.display = 'block';
             document.getElementById('smart-content').innerHTML = '';
             
-            const prompt = `Crie um resumo de altíssima qualidade sobre "${topicName}" (${discName}) para concursos públicos.
+            // Remove o bloco do nome para pesquisa mais limpa
+            const cleanTopic = topicName.split(' - ')[0];
+            
+            const prompt = `Crie um resumo de altíssima qualidade sobre "${cleanTopic}" (${discName}) para concursos públicos.
 
             Formato MARKDOWN:
             
@@ -1225,7 +1620,7 @@
 
         // ===== HEATMAP =====
         window.updateHeatmap = function() {
-            const container = document.getElementById('heatmap-container');
+            const container = document.getElementById('heatmap-grid');
             if (!container) return;
             
             const today = new Date();
@@ -1259,6 +1654,53 @@
             });
             
             container.innerHTML = html;
+        }
+
+        // ===== MEU DESEMPENHO - ÚLTIMOS 7 DIAS =====
+        window.updateLast7Days = function() {
+            const today = new Date();
+            const last7Days = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(today.getDate() - i);
+                last7Days.push(date.toISOString().split('T')[0]);
+            }
+
+            let totalEx = 0;
+            let totalAc = 0;
+            const dailyData = last7Days.map(date => {
+                let ex = 0;
+                let ac = 0;
+                
+                window.appData.forEach(d => {
+                    d.contents.forEach(c => {
+                        if (c.date === date) {
+                            ex += Number(c.ex) || 0;
+                            ac += Number(c.ac) || 0;
+                        }
+                    });
+                });
+                
+                totalEx += ex;
+                totalAc += ac;
+                
+                return { ex, ac };
+            });
+
+            const aproveitamento = totalEx > 0 ? ((totalAc / totalEx) * 100).toFixed(2) : 0;
+            const erros = totalEx - totalAc;
+
+            document.getElementById('perf-7days').textContent = aproveitamento + '%';
+            document.getElementById('stats-resolucoes').textContent = totalEx;
+            document.getElementById('stats-acertos').textContent = totalAc;
+            document.getElementById('stats-erros').textContent = erros;
+
+            // Update evolution chart
+            if (charts.evolution) {
+                charts.evolution.data.datasets[0].data = dailyData.map(d => d.ex);
+                charts.evolution.update();
+            }
         }
 
         // ===== CORE FUNCTIONS =====
@@ -1325,14 +1767,14 @@
                         }
                     };
                     tr.innerHTML = `
-                        <td class="text-center text-gray-500 cursor-pointer hover:text-white text-lg">${disc.expanded ? '▼' : '▶'}</td>
+                        <td class="text-center text-gray-500 cursor-pointer hover:text-white text-base">${disc.expanded ? '▼' : '▶'}</td>
                         <td>
                             <div class="flex flex-col gap-1">
                                 <input readonly 
                                     ondblclick="this.readOnly=false;this.focus()" 
                                     onblur="this.readOnly=true" 
                                     onkeydown="if(event.key==='Enter')this.blur()" 
-                                    class="input-clean font-bold text-white text-base" 
+                                    class="input-clean font-bold text-white text-sm" 
                                     value="${disc.name}" 
                                     onchange="window.updateDisc('${disc.id}', 'name', this.value)" 
                                     onclick="event.stopPropagation()">
@@ -1346,7 +1788,7 @@
                         <td></td>
                         <td class="text-center">
                             <input 
-                                class="input-clean text-center w-12 mx-auto" 
+                                class="input-clean text-center w-10 mx-auto text-sm" 
                                 value="${disc.weight}" 
                                 onchange="window.updateDisc('${disc.id}', 'weight', this.value)" 
                                 onclick="event.stopPropagation()">
@@ -1405,12 +1847,21 @@
                             const rPerf = (rex > 0) ? ((rac/rex)*100).toFixed(0) + '%' : '-';
                             const rClass = (rex > 0) ? getPerfColor(rac/rex) : 'text-gray-600';
                             
+                            // Determinar classe de cor para a célula
+                            let revCellClass = '';
+                            if (i === 0) revCellClass = 'rev-cell-r1';
+                            else if (i === 1) revCellClass = 'rev-cell-r7';
+                            else if (i === 2) revCellClass = 'rev-cell-r15';
+                            else if (i === 3) revCellClass = 'rev-cell-r30';
+                            else if (i === 4) revCellClass = 'rev-cell-r60';
+                            else if (i === 5) revCellClass = 'rev-cell-r90';
+                            
                             revCells += `
-                                <td class="text-center border-l border-gray-700">
+                                <td class="text-center border-l border-gray-700 ${revCellClass}">
                                     <div class="${dotClass}" onclick="window.toggleRev('${disc.id}', '${cont.id}', ${i})" 
                                          title="Revisão ${REVISION_INTERVALS[i]} dias - Vence: ${r.dateStr || 'N/A'}"></div>
                                 </td>
-                                <td class="text-center px-1">
+                                <td class="text-center px-1 ${revCellClass}">
                                     <div class="flex flex-col items-center gap-1">
                                         <div class="flex gap-1">
                                             <input class="input-mini" placeholder="Q" value="${rex}" 
@@ -1418,7 +1869,7 @@
                                             <input class="input-mini" placeholder="A" value="${rac}" 
                                                 onchange="window.updateRevStats('${disc.id}', '${cont.id}', ${i}, 'revAc', this.value)">
                                         </div>
-                                        <span class="text-[0.6rem] font-bold ${rClass}">${rPerf}</span>
+                                        <span class="text-[0.55rem] font-bold ${rClass}">${rPerf}</span>
                                     </div>
                                 </td>
                             `;
@@ -1431,23 +1882,23 @@
                                     ondblclick="this.readOnly=false;this.focus()" 
                                     onblur="this.readOnly=true" 
                                     onkeydown="if(event.key==='Enter')this.blur()" 
-                                    class="input-clean" 
+                                    class="input-clean text-xs" 
                                     value="${cont.name}" 
                                     onchange="window.updateContent('${disc.id}', '${cont.id}', 'name', this.value)">
                             </td>
                             <td class="text-center">
-                                <input class="input-clean text-center text-xs" 
+                                <input class="input-clean text-center text-xs w-10 mx-auto" 
                                     value="${cont.cob || 0}" 
                                     onchange="window.updateContent('${disc.id}', '${cont.id}', 'cob', this.value)">
                             </td>
                             <td></td>
                             <td class="text-center">
-                                <input class="input-clean text-center text-xs w-12 mx-auto" 
+                                <input class="input-clean text-center text-xs w-10 mx-auto" 
                                     value="${cont.ex}" 
                                     onchange="window.updateContent('${disc.id}', '${cont.id}', 'ex', this.value)">
                             </td>
                             <td class="text-center">
-                                <input class="input-clean text-center text-xs w-12 mx-auto" 
+                                <input class="input-clean text-center text-xs w-10 mx-auto" 
                                     value="${cont.ac}" 
                                     onchange="window.updateContent('${disc.id}', '${cont.id}', 'ac', this.value)">
                             </td>
@@ -1462,12 +1913,12 @@
                             <td class="text-center">
                                 <div class="flex items-center justify-center gap-1">
                                     <button class="btn-icon" onclick="window.explainTopic('${cont.name.replace(/'/g, "\\'")}', '${disc.name.replace(/'/g, "\\'")}')" title="Explicar com IA">
-                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                                         </svg>
                                     </button>
                                     <button class="btn-icon" onclick="window.deleteContent('${disc.id}', '${cont.id}')" title="Excluir">
-                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                         </svg>
                                     </button>
@@ -1486,7 +1937,7 @@
 
         // ===== UI HELPERS =====
         window.switchTab = function(tab) {
-            ['dashboard', 'cycle'].forEach(t => {
+            ['estatisticas', 'estudos'].forEach(t => {
                 const view = document.getElementById(`view-${t}`);
                 const nav = document.getElementById(`nav-${t}`);
                 if (view) view.style.display = 'none';
@@ -1499,9 +1950,10 @@
             if (activeView) activeView.style.display = 'block';
             if (activeNav) activeNav.classList.add('active');
             
-            if (tab === 'dashboard') {
+            if (tab === 'estatisticas') {
                 window.updateStats();
                 window.updateHeatmap();
+                window.updateLast7Days();
             } else {
                 window.renderTable(window.isFilterTodayActive);
             }
@@ -1537,6 +1989,7 @@
             window.saveData(); 
             window.renderTable(window.isFilterTodayActive);
             window.updateStats();
+            window.updateLast7Days();
         };
         
         window.toggleDate = (dId, cId, chk) => {
@@ -1550,6 +2003,7 @@
             window.renderTable(window.isFilterTodayActive);
             window.updateHeatmap();
             window.updateStats();
+            window.updateLast7Days();
         };
         
         window.updateRevStats = (dId, cId, idx, f, v) => {
@@ -1565,6 +2019,7 @@
             window.saveData(); 
             window.renderTable(window.isFilterTodayActive);
             window.updateStats();
+            window.updateLast7Days();
         };
         
         window.toggleRev = (dId, cId, idx) => {
@@ -1607,7 +2062,7 @@
             
             d.contents.push({ 
                 id: 'c' + Date.now(), 
-                name: 'Novo Tópico', 
+                name: 'Novo Tópico - Bloco ?', 
                 cob: 0, 
                 ex: 0, 
                 ac: 0, 
@@ -1633,6 +2088,7 @@
             window.renderTable(window.isFilterTodayActive);
             window.updateHeatmap();
             window.updateStats();
+            window.updateLast7Days();
         };
         
         window.showInlineAddDiscipline = () => {
@@ -1721,11 +2177,15 @@
         // ===== INIT =====
         window.onload = function() {
             try {
-                const local = localStorage.getItem('neuro_fiscal_v7');
-                window.appData = local ? JSON.parse(local) : JSON.parse(JSON.stringify(SEED_DATA));
+                const local = localStorage.getItem('neuro_fiscal_v8');
+                if (local) {
+                    window.appData = JSON.parse(local);
+                } else {
+                    window.appData = initializeFromSpreadsheet();
+                }
             } catch(e) {
                 console.error('Erro ao carregar dados:', e);
-                window.appData = JSON.parse(JSON.stringify(SEED_DATA));
+                window.appData = initializeFromSpreadsheet();
             }
             
             // Init Charts
@@ -1806,10 +2266,52 @@
                 });
             }
 
+            const ctxEvo = document.getElementById('evolutionChart')?.getContext('2d');
+            if (ctxEvo) {
+                charts.evolution = new Chart(ctxEvo, {
+                    type: 'line',
+                    data: { 
+                        labels: ['D-6', 'D-5', 'D-4', 'D-3', 'D-2', 'Ontem', 'Hoje'], 
+                        datasets: [{ 
+                            label: 'Questões', 
+                            data: [0, 0, 0, 0, 0, 0, 0], 
+                            borderColor: '#8b5cf6', 
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            pointBackgroundColor: '#1e1f22',
+                            pointBorderColor: '#8b5cf6',
+                            pointBorderWidth: 2,
+                            pointRadius: 3,
+                            fill: true
+                        }] 
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        scales: { 
+                            y: { 
+                                beginAtZero: true,
+                                grid: { display: false },
+                                ticks: { display: false }
+                            }, 
+                            x: { 
+                                grid: { display: false },
+                                ticks: { font: { size: 8 }, color: '#9aa0a6' }
+                            } 
+                        }, 
+                        plugins: { 
+                            legend: { display: false } 
+                        } 
+                    }
+                });
+            }
+
             window.renderTable(false);
             window.updateStats();
             window.updateHeatmap();
-            window.switchTab('dashboard');
+            window.updateLast7Days();
+            window.switchTab('estatisticas');
         };
     </script>
 </body>
