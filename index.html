@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeuroAI Study · TEC Concursos · Ciclo 90 Dias</title>
+    <title>NeuroAI · Dark Elegant</title>
     
-    <!-- CSS e bibliotecas -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -17,303 +19,849 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
+        /* ===== RESET ===== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #0a0c0e;
-            color: #e8eaed;
-            min-height: 100vh;
-        }
-
+        /* ===== VARIÁVEIS - TEMA ESCURO ELEGANTE ===== */
         :root {
-            --bg-card: #1a1c1f;
-            --border: #2f3336;
-            --blue: #4285f4;
-            --green: #34a853;
-            --yellow: #fbbc04;
-            --red: #ea4335;
-            --purple: #8b5cf6;
-            --pink: #ec4899;
+            /* Cores base - Escuras e sofisticadas */
+            --bg-primary: #0a0c10;
+            --bg-secondary: #111316;
+            --bg-tertiary: #1a1d24;
+            --bg-card: #15181e;
+            --bg-sidebar: #0c0f14;
+            --bg-hover: #1e222a;
+            
+            /* Bordas */
+            --border-light: #2a2e36;
+            --border-medium: #363b45;
+            --border-dark: #404650;
+            
+            /* Texto */
+            --text-primary: #eef2f6;
+            --text-secondary: #b0b8c5;
+            --text-tertiary: #7e8799;
+            --text-muted: #5b6475;
+            --text-disabled: #404650;
+            
+            /* Cores de destaque - Azul escuro sofisticado */
+            --accent-primary: #2f6c9f;
+            --accent-secondary: #3b7db3;
+            --accent-tertiary: #4d8ec9;
+            --accent-soft: #1d3142;
+            --accent-glow: rgba(47, 108, 159, 0.3);
+            
+            /* Cores das disciplinas - Com fundo opacidade 0.3 */
+            --disc-blue: #4d8ec9;
+            --disc-blue-bg: rgba(77, 142, 201, 0.3);
+            --disc-teal: #2f9e8f;
+            --disc-teal-bg: rgba(47, 158, 143, 0.3);
+            --disc-green: #5f9e7a;
+            --disc-green-bg: rgba(95, 158, 122, 0.3);
+            --disc-gold: #b8944d;
+            --disc-gold-bg: rgba(184, 148, 77, 0.3);
+            --disc-purple: #8f7ac9;
+            --disc-purple-bg: rgba(143, 122, 201, 0.3);
+            --disc-rose: #c97a9e;
+            --disc-rose-bg: rgba(201, 122, 158, 0.3);
+            
+            /* Cores de status - Suaves */
+            --green: #2b7a4b;
+            --green-soft: #1a3022;
+            --yellow: #8f6f2c;
+            --yellow-soft: #2e2617;
+            --red: #a14545;
+            --red-soft: #2a1c1c;
+            --purple: #5f4b8b;
+            --purple-soft: #201b2a;
+            --pink: #8b4b6d;
+            --pink-soft: #251e24;
+            --blue: #2f6c9f;
+            --blue-soft: #1a2432;
+            
+            /* Cores das revisões */
+            --rev-r1: #2f6c9f;
+            --rev-r1-bg: rgba(47, 108, 159, 0.15);
+            --rev-r7: #8f6f2c;
+            --rev-r7-bg: rgba(143, 111, 44, 0.15);
+            --rev-r15: #a14545;
+            --rev-r15-bg: rgba(161, 69, 69, 0.15);
+            --rev-r30: #2b7a4b;
+            --rev-r30-bg: rgba(43, 122, 75, 0.15);
+            --rev-r60: #5f4b8b;
+            --rev-r60-bg: rgba(95, 75, 139, 0.15);
+            --rev-r90: #8b4b6d;
+            --rev-r90-bg: rgba(139, 75, 109, 0.15);
+            
+            /* Espaçamentos */
+            --space-xs: 0.25rem;
+            --space-sm: 0.5rem;
+            --space-md: 0.75rem;
+            --space-lg: 1.25rem;
+            --space-xl: 2rem;
+            
+            /* Bordas */
+            --radius-sm: 0.35rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-full: 9999px;
+            
+            /* Sombras */
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
+            --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.6);
+            --shadow-glow: 0 0 0 2px var(--accent-glow);
         }
 
-        .container {
-            max-width: 1800px;
-            margin: 0 auto;
-            padding: 20px;
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            height: 100vh;
+            overflow: hidden;
         }
 
+        /* ===== LAYOUT ===== */
+        .app {
+            display: flex;
+            height: 100vh;
+            background: var(--bg-primary);
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-light);
+            padding: var(--space-lg);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-lg);
+            padding: var(--space-sm) 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--accent-primary);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .logo-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+        }
+
+        .logo-badge {
+            font-size: 0.55rem;
+            background: var(--bg-tertiary);
+            color: var(--text-tertiary);
+            padding: 0.15rem 0.35rem;
+            border-radius: var(--radius-full);
+            margin-left: auto;
+            border: 1px solid var(--border-light);
+        }
+
+        .nav {
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            margin-bottom: var(--space-xs);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border-color: var(--border-medium);
+        }
+
+        .nav-item.active {
+            background: var(--accent-soft);
+            color: var(--accent-tertiary);
+            border-color: var(--accent-primary);
+        }
+
+        .nav-item svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            stroke-width: 1.5;
+            fill: none;
+        }
+
+        /* ===== STATUS SECTION ===== */
+        .status-section {
+            margin-top: auto;
+            padding: var(--space-md);
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-light);
+        }
+
+        .vital-sign {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-xs) 0;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 0.8rem;
+        }
+
+        .vital-sign:last-child {
+            border-bottom: none;
+        }
+
+        .vital-label {
+            color: var(--text-tertiary);
+            font-weight: 500;
+        }
+
+        .vital-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 0.85rem;
+        }
+
+        .vital-value.online {
+            color: var(--green);
+        }
+
+        .vital-value.offline {
+            color: var(--text-tertiary);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm);
+            background: var(--bg-hover);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-sm);
+            border: 1px solid var(--border-light);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-full);
+            border: 2px solid var(--accent-primary);
+            object-fit: cover;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--text-primary);
+        }
+
+        .user-email {
+            font-size: 0.65rem;
+            color: var(--text-tertiary);
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-xl);
+            background: var(--bg-primary);
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-medium) var(--bg-secondary);
+        }
+
+        .main-content::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .main-content::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        .main-content::-webkit-scrollbar-thumb {
+            background: var(--border-medium);
+            border-radius: var(--radius-full);
+        }
+
+        /* ===== HEADER ===== */
+        .page-header {
+            margin-bottom: var(--space-lg);
+            padding-bottom: var(--space-sm);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+            letter-spacing: -0.02em;
+        }
+
+        .page-subtitle {
+            color: var(--text-tertiary);
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .memo-tag {
+            background: var(--accent-soft);
+            color: var(--accent-tertiary);
+            padding: 0.15rem 0.5rem;
+            border-radius: var(--radius-full);
+            font-size: 0.65rem;
+            border: 1px solid var(--accent-primary);
+        }
+
+        /* ===== CARDS ===== */
         .card {
             background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            transition: all 0.2s;
+            border-radius: var(--radius-lg);
+            padding: var(--space-md);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-light);
+            transition: all 0.3s ease;
         }
 
         .card:hover {
-            border-color: var(--blue);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            border-color: var(--border-medium);
+            box-shadow: var(--shadow-lg);
         }
 
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-sm);
+            padding-bottom: var(--space-xs);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .card-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .card-title small {
+            font-size: 0.65rem;
+            color: var(--text-tertiary);
+            margin-left: var(--space-xs);
+            font-weight: normal;
+            text-transform: none;
+        }
+
+        /* ===== KPI GRID ===== */
         .kpi-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-sm);
+            margin-bottom: var(--space-lg);
         }
 
         .kpi-card {
-            background: linear-gradient(145deg, #1a1c1f, #1e1f22);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid var(--border);
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: var(--space-sm) var(--space-md);
+            border: 1px solid var(--border-light);
+            transition: all 0.3s ease;
+        }
+
+        .kpi-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-xs);
         }
 
         .kpi-value {
-            font-size: 2.5rem;
+            font-size: 1.8rem;
             font-weight: 700;
             line-height: 1;
+            color: var(--text-primary);
+            margin-bottom: var(--space-xs);
+            font-family: "JetBrains Mono", monospace;
         }
 
-        .btn {
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 500;
-            cursor: pointer;
-            border: 1px solid transparent;
-            transition: all 0.2s;
-            background: #2a2b2e;
-            color: #e8eaed;
-            font-size: 0.9rem;
+        .kpi-trend {
+            font-size: 0.65rem;
+            color: var(--text-tertiary);
         }
 
-        .btn-primary {
-            background: rgba(66, 133, 244, 0.2);
-            border-color: var(--blue);
-            color: #89b6ff;
-        }
-
-        .btn-primary:hover {
-            background: rgba(66, 133, 244, 0.3);
-        }
-
-        .btn-ai {
-            background: rgba(139, 92, 246, 0.2);
-            border-color: var(--purple);
-            color: #c4b5fd;
-        }
-
+        /* ===== TABELA ===== */
         .table-container {
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow-x: auto;
-            overflow-y: auto;
             background: var(--bg-card);
-            max-height: 70vh;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-light);
+            overflow: auto;
+            box-shadow: var(--shadow-md);
+            max-height: 65vh;
+            font-size: 0.8rem;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 2800px;
-            font-size: 0.85rem;
+            min-width: 2400px;
         }
 
         th {
-            background: #1e1f22;
-            color: #9aa0a6;
-            padding: 12px 4px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
             font-weight: 600;
-            font-size: 0.7rem;
+            font-size: 0.6rem;
             text-transform: uppercase;
-            border-bottom: 1px solid var(--border);
+            letter-spacing: 0.05em;
+            padding: var(--space-xs) var(--space-sm);
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
             position: sticky;
             top: 0;
             z-index: 10;
+            white-space: nowrap;
         }
 
         td {
-            padding: 8px 4px;
-            border-bottom: 1px solid var(--border);
+            padding: var(--space-xs) var(--space-sm);
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-secondary);
             vertical-align: middle;
         }
 
         tr:hover td {
-            background: #2a2b2e;
+            background: var(--bg-hover);
         }
 
-        .tr-disciplina {
-            background: #1e1f22;
+        /* Disciplina row - Colorida com fundo opacidade 0.3 */
+        .disciplina-row {
+            border-left: 3px solid transparent;
+        }
+
+        .disciplina-row td:first-child {
+            border-top-left-radius: var(--radius-sm);
+            border-bottom-left-radius: var(--radius-sm);
+        }
+
+        .disciplina-row[data-color="0"] { 
+            border-left-color: var(--disc-blue);
+            background: var(--disc-blue-bg);
+        }
+        .disciplina-row[data-color="1"] { 
+            border-left-color: var(--disc-teal);
+            background: var(--disc-teal-bg);
+        }
+        .disciplina-row[data-color="2"] { 
+            border-left-color: var(--disc-green);
+            background: var(--disc-green-bg);
+        }
+        .disciplina-row[data-color="3"] { 
+            border-left-color: var(--disc-gold);
+            background: var(--disc-gold-bg);
+        }
+        .disciplina-row[data-color="4"] { 
+            border-left-color: var(--disc-purple);
+            background: var(--disc-purple-bg);
+        }
+        .disciplina-row[data-color="5"] { 
+            border-left-color: var(--disc-rose);
+            background: var(--disc-rose-bg);
+        }
+
+        .disciplina-row td {
+            color: var(--text-primary);
             font-weight: 600;
+            border-bottom: 2px solid var(--border-medium);
         }
 
-        .tr-disciplina td {
-            border-bottom: 2px solid var(--blue);
+        .disciplina-name {
+            color: inherit;
+            font-weight: 600;
+            background: transparent;
+            border: none;
+            padding: var(--space-xs) 0;
+            width: auto;
+            min-width: 200px;
         }
 
-        /* Cores das revisões */
-        .rev-r1 { background-color: rgba(66, 133, 244, 0.1); }
-        .rev-r7 { background-color: rgba(251, 188, 4, 0.1); }
-        .rev-r15 { background-color: rgba(234, 67, 53, 0.1); }
-        .rev-r30 { background-color: rgba(52, 168, 83, 0.1); }
-        .rev-r60 { background-color: rgba(139, 92, 246, 0.1); }
-        .rev-r90 { background-color: rgba(236, 72, 153, 0.1); }
+        .disciplina-name:focus {
+            outline: none;
+            color: var(--accent-tertiary);
+        }
 
+        /* Peso texto simples ao lado do nome */
+        .peso-texto {
+            color: var(--text-tertiary);
+            font-size: 0.7rem;
+            font-weight: 400;
+            margin-left: 6px;
+        }
+
+        /* Inputs */
         .input-clean {
             background: transparent;
             border: 1px solid transparent;
-            color: #e8eaed;
-            padding: 4px 6px;
-            border-radius: 4px;
+            color: var(--text-primary);
+            padding: 2px 4px;
+            border-radius: var(--radius-sm);
             width: 100%;
+            font-family: inherit;
             font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .input-clean:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--border-light);
         }
 
         .input-clean:focus {
-            border-color: var(--blue);
             outline: none;
-            background: #1e1f22;
+            border-color: var(--accent-primary);
+            background: var(--bg-secondary);
+            box-shadow: var(--shadow-glow);
         }
 
         .input-mini {
-            width: 40px;
+            width: 38px;
             height: 26px;
             text-align: center;
-            background: #2a2b2e;
-            border: 1px solid var(--border);
-            color: #e8eaed;
-            border-radius: 3px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+            color: var(--text-primary);
+            border-radius: var(--radius-sm);
+            font-family: "JetBrains Mono", monospace;
             font-size: 0.75rem;
+            padding: 2px;
+            transition: all 0.2s ease;
         }
 
-        .input-micro {
-            width: 35px;
-            height: 24px;
-            text-align: center;
-            background: #2a2b2e;
-            border: 1px solid var(--border);
-            color: #e8eaed;
-            border-radius: 3px;
-            font-size: 0.7rem;
+        .input-mini:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: var(--shadow-glow);
         }
 
-        /* Status dots */
-        .status-dot {
+        .input-mini.zero {
+            color: var(--text-disabled);
+            opacity: 0.5;
+        }
+
+        /* Slider para relevância */
+        .relevancia-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .relevancia-slider {
+            width: 60px;
+            height: 4px;
+            -webkit-appearance: none;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-full);
+            outline: none;
+        }
+
+        .relevancia-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: var(--radius-full);
+            background: var(--accent-primary);
+            cursor: pointer;
+            border: 2px solid var(--accent-tertiary);
+        }
+
+        .relevancia-slider::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            border-radius: var(--radius-full);
+            background: var(--accent-primary);
+            cursor: pointer;
+            border: 2px solid var(--accent-tertiary);
+        }
+
+        /* Badge relevância */
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            border-radius: var(--radius-full);
+            font-size: 0.6rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-light);
+        }
+
+        .badge-relevancia.alta {
+            background: var(--red-soft);
+            color: var(--red);
+            border-color: var(--red);
+        }
+
+        .badge-relevancia.media {
+            background: var(--yellow-soft);
+            color: var(--yellow);
+            border-color: var(--yellow);
+        }
+
+        .badge-relevancia.baixa {
+            background: var(--green-soft);
+            color: var(--green);
+            border-color: var(--green);
+        }
+
+        /* Checkbox */
+        .checkbox-estudado {
+            appearance: none;
             width: 20px;
             height: 20px;
-            border-radius: 4px;
-            margin: 0 auto;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-medium);
+            border-radius: var(--radius-sm);
             cursor: pointer;
             position: relative;
-            display: inline-block;
+            transition: all 0.2s ease;
+            margin: 0 auto;
+            display: block;
         }
 
-        .status-dot.done {
-            background: rgba(52, 168, 83, 0.2);
-            border: 1px solid var(--green);
+        .checkbox-estudado:checked {
+            background: var(--green-soft);
+            border-color: var(--green);
         }
 
-        .status-dot.done::after {
-            content: '✓';
+        .checkbox-estudado:checked::after {
+            content: "✓";
             color: var(--green);
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 12px;
+            font-weight: bold;
+        }
+
+        .checkbox-estudado:hover {
+            border-color: var(--green);
+            background: var(--green-soft);
+        }
+
+        /* Status Dots */
+        .status-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: var(--radius-sm);
+            margin: 0 auto;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .status-dot.done {
+            background: var(--green-soft);
+            border: 1px solid var(--green);
+        }
+
+        .status-dot.done::after {
+            content: "✓";
+            color: var(--green);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 11px;
+            font-weight: bold;
         }
 
         .status-dot.pending {
-            background: rgba(234, 67, 53, 0.2);
+            background: var(--red-soft);
             border: 1px solid var(--red);
             animation: pulse 2s infinite;
         }
 
         .status-dot.future {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px dashed var(--border);
+            background: var(--bg-tertiary);
+            border: 1px dashed var(--border-medium);
         }
 
         @keyframes pulse {
             0% { opacity: 1; }
-            50% { opacity: 0.5; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Cores revisões */
+        .rev-bg-r1 { background: var(--rev-r1-bg); }
+        .rev-bg-r7 { background: var(--rev-r7-bg); }
+        .rev-bg-r15 { background: var(--rev-r15-bg); }
+        .rev-bg-r30 { background: var(--rev-r30-bg); }
+        .rev-bg-r60 { background: var(--rev-r60-bg); }
+        .rev-bg-r90 { background: var(--rev-r90-bg); }
+
+        /* Container para A% - sem cor inicial, cores após preenchimento */
+        .rev-a-percent {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .rev-percent-value {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-secondary); /* cor padrão */
+            margin-left: 1px;
+        }
+
+        .rev-percent-value.green {
+            color: var(--green);
+        }
+
+        .rev-percent-value.yellow {
+            color: var(--yellow);
+        }
+
+        .rev-percent-value.red {
+            color: var(--red);
+        }
+
+        /* Botões */
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border-color: var(--border-light);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--border-medium);
+        }
+
+        .btn-primary {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-secondary);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-secondary);
+        }
+
+        .btn-ai {
+            background: var(--purple-soft);
+            color: var(--purple);
+            border-color: var(--purple);
+        }
+
+        .btn-ai:hover {
+            background: rgba(95, 75, 139, 0.3);
         }
 
         /* Link TEC */
         .link-tec {
-            color: #89b6ff;
+            color: var(--accent-tertiary);
             text-decoration: none;
             font-size: 0.7rem;
             display: inline-flex;
             align-items: center;
-            gap: 2px;
-            padding: 2px 4px;
-            border-radius: 3px;
-            background: rgba(66, 133, 244, 0.1);
-        }
-
-        .link-tec:hover {
-            background: rgba(66, 133, 244, 0.2);
-            color: white;
-        }
-
-        /* Relevância badge */
-        .relevancia-badge {
-            display: inline-block;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 0.65rem;
-            font-weight: 600;
-        }
-
-        .relevancia-alta {
-            background: rgba(234, 67, 53, 0.2);
-            color: #fca5a5;
-            border: 1px solid rgba(234, 67, 53, 0.3);
-        }
-
-        .relevancia-media {
-            background: rgba(251, 188, 4, 0.2);
-            color: #fde047;
-            border: 1px solid rgba(251, 188, 4, 0.3);
-        }
-
-        .relevancia-baixa {
-            background: rgba(52, 168, 83, 0.2);
-            color: #86efac;
-            border: 1px solid rgba(52, 168, 83, 0.3);
-        }
-
-        .btn-add-topico {
-            background: transparent;
-            border: none;
-            color: var(--blue);
-            font-size: 0.65rem;
-            cursor: pointer;
-            padding: 2px 4px;
-            opacity: 0.7;
+            gap: 0.2rem;
+            padding: 0.15rem 0.3rem;
+            border-radius: var(--radius-sm);
+            background: var(--accent-soft);
+            border: 1px solid var(--accent-primary);
             white-space: nowrap;
         }
 
-        .btn-add-topico:hover {
-            opacity: 1;
-            text-decoration: underline;
+        .link-tec:hover {
+            background: var(--accent-primary);
+            color: white;
         }
 
+        /* Heatmap */
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+            max-width: 280px;
+        }
+
+        .heatmap-cell {
+            aspect-ratio: 1;
+            border-radius: var(--radius-sm);
+            background: var(--bg-tertiary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.15);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--accent-primary);
+        }
+
+        /* Modal */
         .modal {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(5px);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
             display: none;
             align-items: center;
             justify-content: center;
@@ -321,429 +869,478 @@
         }
 
         .modal-content {
-            background: #1a1c1f;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            max-width: 600px;
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            max-width: 500px;
             width: 90%;
             max-height: 80vh;
             overflow: auto;
-            padding: 30px;
+            padding: var(--space-lg);
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--border-light);
         }
 
-        .status-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.65rem;
-            font-weight: 600;
-            text-transform: uppercase;
+        /* Alertas */
+        .alert {
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-md);
+            border-left: 4px solid transparent;
+            font-size: 0.85rem;
         }
 
-        .status-badge.cloud {
-            background: rgba(139, 92, 246, 0.2);
-            color: #c4b5fd;
-            border: 1px solid rgba(139, 92, 246, 0.3);
+        .alert-warning {
+            background: var(--yellow-soft);
+            border-left-color: var(--yellow);
         }
 
-        .heatmap-cell {
-            aspect-ratio: 1;
-            border-radius: 3px;
-            cursor: pointer;
+        .alert-info {
+            background: var(--accent-soft);
+            border-left-color: var(--accent-primary);
         }
 
-        /* SM-2 Buttons */
-        .sm2-buttons {
-            display: flex;
-            gap: 2px;
-            justify-content: center;
+        /* Grids */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
         }
 
-        .sm2-btn {
-            width: 22px;
-            height: 22px;
-            border-radius: 3px;
+        /* Botão add tópico */
+        .btn-add-topico {
+            background: transparent;
             border: none;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .sm2-btn.easy {
-            background: rgba(52, 168, 83, 0.3);
-            color: #86efac;
-        }
-        .sm2-btn.medium {
-            background: rgba(251, 188, 4, 0.3);
-            color: #fde047;
-        }
-        .sm2-btn.hard {
-            background: rgba(234, 67, 53, 0.3);
-            color: #fca5a5;
-        }
-
-        .revisao-percent {
+            color: var(--text-tertiary);
             font-size: 0.65rem;
-            font-weight: 600;
+            cursor: pointer;
+            padding: 2px 4px;
+            margin-left: 2px;
+        }
+
+        .btn-add-topico:hover {
+            color: var(--accent-tertiary);
+        }
+
+        /* Responsividade */
+        @media (max-width: 1024px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- HEADER -->
-        <div class="flex justify-between items-center mb-8">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center text-xl">
-                    🧠
+    <div class="app">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">🧠</div>
+                <span class="logo-text">NeuroAI</span>
+                <span class="logo-badge">v2.0</span>
+            </div>
+
+            <nav class="nav">
+                <div class="nav-item active" onclick="showTab('dashboard')" id="nav-dashboard">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                    </svg>
+                    Dashboard
                 </div>
-                <div>
-                    <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 text-transparent bg-clip-text">
-                        NeuroAI Study · TEC Concursos
-                    </h1>
-                    <div class="flex items-center gap-2 mt-1">
-                        <span class="status-badge cloud">☁️ DATABASE: CLOUD</span>
-                        <span class="text-xs text-gray-500">Ciclo 90 dias · R1 R7 R15 R30 R60 R90</span>
+                <div class="nav-item" onclick="showTab('estudos')" id="nav-estudos">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"/>
+                    </svg>
+                    Ciclo de Estudos
+                </div>
+                <div class="nav-item" onclick="showTab('metas')" id="nav-metas">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    Metas
+                </div>
+                <div class="nav-item" onclick="showTab('revisoes')" id="nav-revisoes">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V9h14v10zM7 11h5v5H7v-5z"/>
+                    </svg>
+                    Calendário
+                </div>
+            </nav>
+
+            <!-- STATUS SECTION -->
+            <div class="status-section">
+                <div id="userProfile" class="user-profile" style="display: none;">
+                    <img id="userAvatar" class="user-avatar" src="">
+                    <div>
+                        <div class="user-name" id="userName"></div>
+                        <div class="user-email" id="userEmail"></div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="flex items-center gap-4">
-                <div id="userInfo" class="hidden items-center gap-3">
-                    <img id="userAvatar" src="" class="w-8 h-8 rounded-full border-2 border-blue-500">
-                    <span id="userName" class="text-sm"></span>
-                    <button onclick="logout()" class="text-xs text-red-400 hover:text-red-300">Sair</button>
-                </div>
                 
-                <button id="loginBtn" onclick="login()" class="btn btn-primary">
+                <button id="loginBtn" onclick="login()" class="btn btn-primary" style="width: 100%; margin-bottom: var(--space-sm); font-size: 0.8rem; padding: 0.4rem;">
                     Entrar com Google
                 </button>
                 
-                <div class="flex items-center gap-2 text-sm">
-                    <div id="syncStatus" class="w-2 h-2 rounded-full bg-gray-500"></div>
-                    <span id="syncText" class="text-gray-500">Offline</span>
+                <div class="vital-sign">
+                    <span class="vital-label">Status</span>
+                    <span class="vital-value" id="syncText">Offline</span>
+                </div>
+                <div class="vital-sign">
+                    <span class="vital-label">Total Questões</span>
+                    <span class="vital-value" id="vitalTotal">0</span>
+                </div>
+                <div class="vital-sign">
+                    <span class="vital-label">Desempenho</span>
+                    <span class="vital-value" id="vitalPerf">0.0%</span>
+                </div>
+                <div class="vital-sign">
+                    <span class="vital-label">Revisões Hoje</span>
+                    <span class="vital-value" id="vitalRev">0</span>
+                </div>
+                <div class="vital-sign">
+                    <span class="vital-label">Meta Semanal</span>
+                    <span class="vital-value" id="vitalMeta">500</span>
+                </div>
+                <div class="vital-sign">
+                    <span class="vital-label">Dias até Prova</span>
+                    <span class="vital-value" id="vitalDias">90</span>
+                </div>
+                
+                <div style="margin-top: var(--space-md); padding: var(--space-sm); background: var(--bg-hover); border-radius: var(--radius-md); border-left: 4px solid var(--accent-primary);">
+                    <div style="font-size: 0.65rem; color: var(--text-tertiary); margin-bottom: var(--space-xs);">MEMO</div>
+                    <div style="display: flex; gap: var(--space-xs); flex-wrap: wrap;">
+                        <span class="badge" style="background: var(--red-soft); color: var(--red);">CONFUSION</span>
+                        <span class="badge" style="background: var(--yellow-soft); color: var(--yellow);">DIZZINESS</span>
+                        <span class="badge badge-cloud">RECENTLY DX BRAIN MASS</span>
+                    </div>
                 </div>
             </div>
-        </div>
+        </aside>
 
-        <!-- ABAS -->
-        <div class="flex gap-2 mb-6 border-b border-gray-800 pb-2 overflow-x-auto">
-            <button onclick="showTab('dashboard')" id="tabDashboard" class="btn bg-transparent hover:bg-gray-800 active">📊 Dashboard</button>
-            <button onclick="showTab('estudos')" id="tabEstudos" class="btn bg-transparent hover:bg-gray-800">📚 Ciclo de Estudos</button>
-            <button onclick="showTab('metas')" id="tabMetas" class="btn bg-transparent hover:bg-gray-800">🎯 Metas</button>
-            <button onclick="showTab('revisoes')" id="tabRevisoes" class="btn bg-transparent hover:bg-gray-800">🔄 Calendário</button>
-            <button onclick="exportarDados()" class="btn bg-transparent hover:bg-gray-800">📥 Backup</button>
-        </div>
-
-        <!-- DASHBOARD -->
-        <div id="dashboardView">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-semibold">Dashboard · Acompanhamento</h2>
-                <button onclick="consultCoach()" class="btn btn-ai">
-                    <span>✨</span> Análise Estratégica IA
-                </button>
-            </div>
-
-            <!-- Feedback IA -->
-            <div id="coachFeedback" class="hidden mb-6 p-4 bg-gray-800 border-l-4 border-purple-500 rounded">
-                <div id="coachText" class="text-sm"></div>
-            </div>
-
-            <!-- KPIs -->
-            <div class="kpi-grid">
-                <div class="kpi-card">
-                    <div class="text-gray-500 text-sm mb-2">Total Questões</div>
-                    <div class="kpi-value" id="kpiTotal">0</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="text-gray-500 text-sm mb-2">Desempenho Global</div>
-                    <div class="kpi-value text-blue-400" id="kpiPerf">0%</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="text-gray-500 text-sm mb-2">Revisões Hoje</div>
-                    <div class="kpi-value text-yellow-400" id="kpiRev">0</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="text-gray-500 text-sm mb-2">Progresso 90d</div>
-                    <div class="kpi-value text-green-400" id="kpi90d">0%</div>
-                </div>
-            </div>
-
-            <!-- Heatmap + Últimos 7 dias -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div class="card">
-                    <h3 class="font-semibold mb-4">📊 Constância (30 dias)</h3>
-                    <div id="heatmap" class="grid grid-cols-7 gap-1 max-w-[300px] mb-3"></div>
-                    <div class="flex items-center gap-2 text-xs text-gray-500">
-                        <span>Menos</span>
-                        <div class="flex gap-1">
-                            <div class="w-4 h-4 rounded bg-gray-700"></div>
-                            <div class="w-4 h-4 rounded bg-green-900"></div>
-                            <div class="w-4 h-4 rounded bg-green-700"></div>
-                            <div class="w-4 h-4 rounded bg-green-500"></div>
-                            <div class="w-4 h-4 rounded bg-green-300"></div>
-                        </div>
-                        <span>Mais</span>
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- DASHBOARD VIEW -->
+            <div id="dashboardView" class="fade-in">
+                <div class="page-header">
+                    <div class="page-title">Dashboard</div>
+                    <div class="page-subtitle">
+                        <span>Acompanhamento de estudos</span>
+                        <span class="memo-tag">⏰ 23:28</span>
+                        <span class="memo-tag">BP 138/87</span>
+                        <span class="memo-tag">Pulse 93</span>
                     </div>
                 </div>
 
-                <div class="card">
-                    <h3 class="font-semibold mb-4">📈 Últimos 7 dias</h3>
-                    <div class="flex items-center gap-6 mb-4">
+                <div style="display: flex; gap: var(--space-sm); margin-bottom: var(--space-md);">
+                    <button onclick="consultCoach()" class="btn btn-ai">
+                        <span>✨</span> Análise com IA
+                    </button>
+                    <button onclick="exportarDados()" class="btn">
+                        <span>📥</span> Backup
+                    </button>
+                </div>
+
+                <div id="coachFeedback" class="alert alert-info" style="display: none;">
+                    <div id="coachText"></div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Total Questões</div>
+                        <div class="kpi-value" id="kpiTotal">0</div>
+                        <div class="kpi-trend">resolvidas</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Desempenho</div>
+                        <div class="kpi-value" style="color: var(--accent-tertiary);" id="kpiPerf">0%</div>
+                        <div class="kpi-trend">média de acertos</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Revisões Hoje</div>
+                        <div class="kpi-value" style="color: var(--yellow);" id="kpiRev">0</div>
+                        <div class="kpi-trend">pendentes</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Progresso</div>
+                        <div class="kpi-value" style="color: var(--green);" id="kpi90d">0%</div>
+                        <div class="kpi-trend">do ciclo</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Heatmap <small>30 dias</small></div>
+                        </div>
+                        <div id="heatmap" class="heatmap-grid" style="margin-bottom: var(--space-xs);"></div>
+                        <div style="display: flex; align-items: center; gap: var(--space-xs); font-size: 0.7rem; color: var(--text-tertiary);">
+                            <span>Menos</span>
+                            <div style="display: flex; gap: 2px;">
+                                <div style="width: 14px; height: 14px; background: var(--bg-tertiary); border-radius: 3px;"></div>
+                                <div style="width: 14px; height: 14px; background: var(--green-soft); border-radius: 3px;"></div>
+                                <div style="width: 14px; height: 14px; background: #1e4620; border-radius: 3px;"></div>
+                                <div style="width: 14px; height: 14px; background: #2d6a4f; border-radius: 3px;"></div>
+                                <div style="width: 14px; height: 14px; background: #40916c; border-radius: 3px;"></div>
+                            </div>
+                            <span>Mais</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Últimos 7 dias</div>
+                        </div>
+                        <div style="display: flex; gap: var(--space-md); margin-bottom: var(--space-xs);">
+                            <div>
+                                <div style="font-size: 1.8rem; font-weight: 700; line-height: 1; color: var(--accent-tertiary);" id="perf7d">0%</div>
+                                <div style="font-size: 0.7rem; color: var(--text-tertiary);">aproveitamento</div>
+                            </div>
+                            <div style="display: flex; gap: var(--space-sm);">
+                                <div>
+                                    <div style="font-size: 0.65rem; color: var(--text-tertiary);">Questões</div>
+                                    <div style="font-weight: 600; font-size: 1rem;" id="total7d">0</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.65rem; color: var(--text-tertiary);">Acertos</div>
+                                    <div style="font-weight: 600; font-size: 1rem; color: var(--green);" id="acertos7d">0</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.65rem; color: var(--text-tertiary);">Erros</div>
+                                    <div style="font-weight: 600; font-size: 1rem; color: var(--red);" id="erros7d">0</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="height: 50px;">
+                            <canvas id="chartEvolucao"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Desempenho por Disciplina</div>
+                        </div>
+                        <div style="height: 220px;">
+                            <canvas id="chartDisciplinas"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Distribuição de Revisões</div>
+                        </div>
+                        <div style="height: 220px;">
+                            <canvas id="chartRevisoes"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ESTUDOS VIEW -->
+            <div id="estudosView" style="display: none;" class="fade-in">
+                <div class="page-header">
+                    <div class="page-title">Ciclo de Estudos</div>
+                    <div class="page-subtitle">
+                        <span>R1 · R7 · R15 · R30 · R60 · R90</span>
+                        <span class="memo-tag">90 dias</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: var(--space-xs); margin-bottom: var(--space-md); flex-wrap: wrap;">
+                    <button onclick="showAddDisciplina()" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">+ Nova Disciplina</button>
+                    <button onclick="toggleFiltroHoje()" id="btnHoje" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">🔥 Hoje</button>
+                    <button onclick="analisarPrioridades()" class="btn btn-ai" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">🎯 Prioridades IA</button>
+                </div>
+
+                <div id="addForm" class="card" style="display: none; margin-bottom: var(--space-md); padding: var(--space-sm);">
+                    <div style="display: flex; gap: var(--space-xs);">
+                        <input type="text" id="novaDisciplina" placeholder="Nome da disciplina" class="input-clean" style="flex: 1; font-size: 0.8rem;">
+                        <select id="pesoDisciplina" class="peso-select" style="width: 70px; background: var(--bg-tertiary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); color: var(--text-primary); padding: 0.2rem;">
+                            <option value="3">Peso 3</option>
+                            <option value="2" selected>Peso 2</option>
+                            <option value="1">Peso 1</option>
+                        </select>
+                        <button onclick="addDisciplina()" class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.7rem;">Salvar</button>
+                        <button onclick="hideAddDisciplina()" class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.7rem;">Cancelar</button>
+                    </div>
+                </div>
+
+                <div id="revisoesAlert" class="alert alert-warning" style="display: none; margin-bottom: var(--space-md); padding: var(--space-xs) var(--space-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span id="revisoesText" style="font-size: 0.8rem;"></span>
+                        <button onclick="mostrarRevisoesHoje()" class="btn btn-ai" style="padding: 0.2rem 0.6rem; font-size: 0.7rem;">Ver</button>
+                    </div>
+                </div>
+
+                <div class="table-container" id="tabelaContainer">
+                    <!-- A tabela será preenchida via JavaScript -->
+                </div>
+            </div>
+
+            <!-- METAS VIEW -->
+            <div id="metasView" style="display: none;" class="fade-in">
+                <div class="page-header">
+                    <div class="page-title">Metas e Objetivos</div>
+                    <div class="page-subtitle">Acompanhe seu progresso no ciclo de 90 dias</div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📅 Meta Semanal</div>
+                        </div>
+                        <div style="margin-bottom: var(--space-sm);">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-xs); font-size: 0.8rem;">
+                                <span style="color: var(--text-tertiary);">Progresso</span>
+                                <span id="progressoMeta">0 / 500</span>
+                            </div>
+                            <div style="height: 6px; background: var(--bg-tertiary); border-radius: var(--radius-full); overflow: hidden;">
+                                <div id="barraProgresso" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent-primary), var(--accent-tertiary)); border-radius: var(--radius-full);"></div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: var(--space-xs);">
+                            <input type="number" id="metaInput" value="500" class="input-clean" style="width: 80px; font-size: 0.8rem;">
+                            <button onclick="atualizarMeta()" class="btn btn-primary" style="padding: 0.3rem 0.8rem; font-size: 0.7rem;">Atualizar</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">⏱️ Dias até a Prova</div>
+                        </div>
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--accent-tertiary); margin-bottom: var(--space-xs);" id="previsaoEdital">-</div>
+                        <div style="color: var(--text-tertiary); font-size: 0.8rem; margin-bottom: var(--space-sm);">dias restantes</div>
+                        <div style="display: flex; gap: var(--space-xs); align-items: center; margin-bottom: var(--space-md);">
+                            <input type="number" id="diasProvaInput" value="90" min="1" max="365" class="input-clean" style="width: 80px; font-size: 0.8rem;">
+                            <button onclick="atualizarDiasProva()" class="btn btn-primary" style="padding: 0.3rem 0.8rem; font-size: 0.7rem;">Atualizar</button>
+                        </div>
                         <div>
-                            <div class="text-2xl font-bold" id="perf7d">0%</div>
-                            <div class="text-xs text-gray-500">aproveitamento</div>
-                        </div>
-                        <div class="grid grid-cols-3 gap-4 text-sm">
-                            <div>
-                                <div class="text-gray-500">Questões</div>
-                                <div class="font-bold" id="total7d">0</div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-xs); font-size: 0.8rem;">
+                                <span style="color: var(--text-tertiary);">Progresso do ciclo</span>
+                                <span id="progressoCiclo">0%</span>
                             </div>
-                            <div>
-                                <div class="text-gray-500">Acertos</div>
-                                <div class="font-bold text-green-400" id="acertos7d">0</div>
-                            </div>
-                            <div>
-                                <div class="text-gray-500">Erros</div>
-                                <div class="font-bold text-red-400" id="erros7d">0</div>
+                            <div style="height: 6px; background: var(--bg-tertiary); border-radius: var(--radius-full); overflow: hidden;">
+                                <div id="barraCiclo" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--green), var(--accent-primary)); border-radius: var(--radius-full);"></div>
                             </div>
                         </div>
                     </div>
-                    <div style="height: 60px;">
-                        <canvas id="chartEvolucao"></canvas>
+                </div>
+            </div>
+
+            <!-- REVISOES VIEW -->
+            <div id="revisoesView" style="display: none;" class="fade-in">
+                <div class="page-header">
+                    <div class="page-title">Calendário de Revisões</div>
+                    <div class="page-subtitle">Próximas revisões dos próximos 30 dias</div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-xs); margin-bottom: var(--space-md);">
+                    <div class="card" style="text-align: center; padding: var(--space-sm);">
+                        <div style="color: var(--rev-r1); font-weight: 600; font-size: 0.7rem; margin-bottom: 2px;">R1</div>
+                        <div style="font-size: 1.5rem; font-weight: 700;" id="countR1">0</div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Gráficos -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="card">
-                    <h3 class="font-semibold mb-4">📊 Desempenho por Disciplina</h3>
-                    <div style="height: 250px;">
-                        <canvas id="chartDisciplinas"></canvas>
+                    <div class="card" style="text-align: center; padding: var(--space-sm);">
+                        <div style="color: var(--rev-r7); font-weight: 600; font-size: 0.7rem; margin-bottom: 2px;">R7</div>
+                        <div style="font-size: 1.5rem; font-weight: 700;" id="countR7">0</div>
                     </div>
-                </div>
-                <div class="card">
-                    <h3 class="font-semibold mb-4">📊 Distribuição de Revisões</h3>
-                    <div style="height: 250px;">
-                        <canvas id="chartRevisoes"></canvas>
+                    <div class="card" style="text-align: center; padding: var(--space-sm);">
+                        <div style="color: var(--rev-r15); font-weight: 600; font-size: 0.7rem; margin-bottom: 2px;">R15</div>
+                        <div style="font-size: 1.5rem; font-weight: 700;" id="countR15">0</div>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ESTUDOS -->
-        <div id="estudosView" style="display: none;">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h2 class="text-xl font-semibold">Ciclo de Estudos · TEC Concursos</h2>
-                    <p class="text-xs text-gray-500">Dados importados da planilha · Clique em "+ Tópico" para adicionar</p>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="showAddDisciplina()" class="btn btn-primary">+ Nova Disciplina</button>
-                    <button onclick="toggleFiltroHoje()" id="btnHoje" class="btn">🔥 Revisões Hoje</button>
-                    <button onclick="analisarPrioridades()" class="btn btn-ai">🎯 Prioridades IA</button>
-                </div>
-            </div>
-
-            <!-- Form add disciplina -->
-            <div id="addForm" class="card mb-6 hidden p-4">
-                <div class="flex gap-4 flex-wrap">
-                    <input type="text" id="novaDisciplina" placeholder="Nome da disciplina" class="input-clean flex-1 min-w-[200px]">
-                    <select id="pesoDisciplina" class="input-clean w-24">
-                        <option value="3">Peso 3 (Alto)</option>
-                        <option value="2" selected>Peso 2 (Médio)</option>
-                        <option value="1">Peso 1 (Baixo)</option>
-                    </select>
-                    <button onclick="addDisciplina()" class="btn btn-primary">Salvar</button>
-                    <button onclick="hideAddDisciplina()" class="btn">Cancelar</button>
-                </div>
-            </div>
-
-            <!-- Alerta de revisões -->
-            <div id="revisoesAlert" class="hidden mb-4 p-4 bg-gray-800 border-l-4 border-yellow-500 rounded flex justify-between items-center">
-                <span id="revisoesText"></span>
-                <button onclick="mostrarRevisoesHoje()" class="btn btn-ai text-sm">Ver revisões</button>
-            </div>
-
-            <!-- Tabela Principal -->
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 20px;"></th>
-                            <th style="min-width: 300px;">DISCIPLINA / TÓPICO - BLOCO</th>
-                            <th style="width: 60px;">RELEV</th>
-                            <th style="width: 45px;">PESO</th>
-                            <th style="width: 45px;">QTD</th>
-                            <th style="width: 45px;">AC</th>
-                            <th style="width: 45px;">%</th>
-                            <th style="width: 90px;">LINK TEC</th>
-                            <th style="width: 60px;">ESTUD</th>
-                            
-                            <!-- Cabeçalho Revisões - R1 -->
-                            <th colspan="3" style="background: rgba(66, 133, 244, 0.2); color: #4285f4;">R1</th>
-                            <th colspan="3" style="background: rgba(251, 188, 4, 0.2); color: #fbbc04;">R7</th>
-                            <th colspan="3" style="background: rgba(234, 67, 53, 0.2); color: #ea4335;">R15</th>
-                            <th colspan="3" style="background: rgba(52, 168, 83, 0.2); color: #34a853;">R30</th>
-                            <th colspan="3" style="background: rgba(139, 92, 246, 0.2); color: #8b5cf6;">R60</th>
-                            <th colspan="3" style="background: rgba(236, 72, 153, 0.2); color: #ec4899;">R90</th>
-                            
-                            <th style="width: 70px;">SM-2</th>
-                            <th style="width: 30px;"></th>
-                        </tr>
-                        <tr>
-                            <th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th>
-                            
-                            <!-- R1 -->
-                            <th style="background: rgba(66, 133, 244, 0.1);">S</th>
-                            <th style="background: rgba(66, 133, 244, 0.1);">QTD</th>
-                            <th style="background: rgba(66, 133, 244, 0.1);">AC/%</th>
-                            
-                            <!-- R7 -->
-                            <th style="background: rgba(251, 188, 4, 0.1);">S</th>
-                            <th style="background: rgba(251, 188, 4, 0.1);">QTD</th>
-                            <th style="background: rgba(251, 188, 4, 0.1);">AC/%</th>
-                            
-                            <!-- R15 -->
-                            <th style="background: rgba(234, 67, 53, 0.1);">S</th>
-                            <th style="background: rgba(234, 67, 53, 0.1);">QTD</th>
-                            <th style="background: rgba(234, 67, 53, 0.1);">AC/%</th>
-                            
-                            <!-- R30 -->
-                            <th style="background: rgba(52, 168, 83, 0.1);">S</th>
-                            <th style="background: rgba(52, 168, 83, 0.1);">QTD</th>
-                            <th style="background: rgba(52, 168, 83, 0.1);">AC/%</th>
-                            
-                            <!-- R60 -->
-                            <th style="background: rgba(139, 92, 246, 0.1);">S</th>
-                            <th style="background: rgba(139, 92, 246, 0.1);">QTD</th>
-                            <th style="background: rgba(139, 92, 246, 0.1);">AC/%</th>
-                            
-                            <!-- R90 -->
-                            <th style="background: rgba(236, 72, 153, 0.1);">S</th>
-                            <th style="background: rgba(236, 72, 153, 0.1);">QTD</th>
-                            <th style="background: rgba(236, 72, 153, 0.1);">AC/%</th>
-                            
-                            <th></th><th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaBody"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- METAS -->
-        <div id="metasView" style="display: none;">
-            <h2 class="text-xl font-semibold mb-6">Metas e Objetivos · 90 Dias</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="card">
-                    <h3 class="font-semibold mb-4">📅 Meta Semanal</h3>
-                    <div class="mb-4">
-                        <div class="flex justify-between text-sm mb-2">
-                            <span>Progresso</span>
-                            <span id="progressoMeta">0 / 500</span>
-                        </div>
-                        <div class="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
-                            <div id="barraProgresso" class="h-full bg-gradient-to-r from-blue-500 to-purple-500" style="width: 0%"></div>
-                        </div>
+                    <div class="card" style="text-align: center; padding: var(--space-sm);">
+                        <div style="color: var(--rev-r30); font-weight: 600; font-size: 0.7rem; margin-bottom: 2px;">R30</div>
+                        <div style="font-size: 1.5rem; font-weight: 700;" id="countR30">0</div>
                     </div>
-                    <div class="flex gap-2">
-                        <input type="number" id="metaInput" value="500" class="input-clean w-24 text-center">
-                        <button onclick="atualizarMeta()" class="btn btn-primary">Atualizar</button>
+                    <div class="card" style="text-align: center; padding: var(--space-sm);">
+                        <div style="color: var(--rev-r60); font-weight: 600; font-size: 0.7rem; margin-bottom: 2px;">R60</div>
+                        <div style="font-size: 1.5rem; font-weight: 700;" id="countR60">0</div>
+                    </div>
+                    <div class="card" style="text-align: center; padding: var(--space-sm);">
+                        <div style="color: var(--rev-r90); font-weight: 600; font-size: 0.7rem; margin-bottom: 2px;">R90</div>
+                        <div style="font-size: 1.5rem; font-weight: 700;" id="countR90">0</div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h3 class="font-semibold mb-4">⏱️ Previsão Edital</h3>
-                    <div class="text-3xl font-bold text-purple-400 mb-2" id="previsaoEdital">-</div>
-                    <div class="text-sm text-gray-500">dias restantes (ciclo 90 dias)</div>
-                    <div class="mt-4">
-                        <div class="flex justify-between text-sm">
-                            <span>Progresso do ciclo</span>
-                            <span id="progressoCiclo">0%</span>
-                        </div>
-                        <div class="w-full h-2 bg-gray-700 rounded-full mt-1">
-                            <div id="barraCiclo" class="h-full bg-gradient-to-r from-green-500 to-blue-500" style="width: 0%"></div>
-                        </div>
+                    <div class="card-header">
+                        <div class="card-title">Próximas revisões</div>
                     </div>
+                    <div id="timelineRevisoes" style="max-height: 350px; overflow-y: auto; font-size: 0.8rem;"></div>
                 </div>
             </div>
-        </div>
-
-        <!-- CALENDÁRIO REVISÕES -->
-        <div id="revisoesView" style="display: none;">
-            <h2 class="text-xl font-semibold mb-6">📅 Calendário de Revisões · 90 Dias</h2>
-            
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-                <div class="card">
-                    <h3 class="font-semibold mb-2 text-blue-400">R1 · 1 dia</h3>
-                    <div class="text-2xl font-bold" id="countR1">0</div>
-                </div>
-                <div class="card">
-                    <h3 class="font-semibold mb-2 text-yellow-400">R7 · 7 dias</h3>
-                    <div class="text-2xl font-bold" id="countR7">0</div>
-                </div>
-                <div class="card">
-                    <h3 class="font-semibold mb-2 text-red-400">R15 · 15 dias</h3>
-                    <div class="text-2xl font-bold" id="countR15">0</div>
-                </div>
-                <div class="card">
-                    <h3 class="font-semibold mb-2 text-green-400">R30 · 30 dias</h3>
-                    <div class="text-2xl font-bold" id="countR30">0</div>
-                </div>
-                <div class="card">
-                    <h3 class="font-semibold mb-2 text-purple-400">R60 · 60 dias</h3>
-                    <div class="text-2xl font-bold" id="countR60">0</div>
-                </div>
-                <div class="card">
-                    <h3 class="font-semibold mb-2 text-pink-400">R90 · 90 dias</h3>
-                    <div class="text-2xl font-bold" id="countR90">0</div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3 class="font-semibold mb-4">Próximas revisões (30 dias)</h3>
-                <div id="timelineRevisoes" class="space-y-2 max-h-96 overflow-y-auto"></div>
-            </div>
-        </div>
+        </main>
     </div>
 
     <!-- MODAL -->
     <div id="modal" class="modal">
         <div class="modal-content">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold" id="modalTitulo">NeuroAI Assistente</h3>
-                <button onclick="fecharModal()" class="text-gray-500 hover:text-white text-xl">✕</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
+                <h3 style="font-size: 1.1rem; font-weight: 600;" id="modalTitulo">NeuroAI Assistente</h3>
+                <button onclick="fecharModal()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-tertiary);">✕</button>
             </div>
-            <div id="modalLoading" class="hidden text-center py-8">
-                <div class="spinner mx-auto mb-4"></div>
-                <p class="text-purple-400">Processando...</p>
+            <div id="modalLoading" style="display: none; text-align: center; padding: var(--space-md);">
+                <div class="spinner"></div>
+                <p style="margin-top: var(--space-sm); color: var(--accent-tertiary); font-size: 0.9rem;">Processando...</p>
             </div>
-            <div id="modalContent" class="markdown-content"></div>
+            <div id="modalContent" class="markdown-content" style="font-size: 0.9rem;"></div>
         </div>
     </div>
 
     <style>
         .spinner {
-            border: 3px solid #2a2b2e;
-            border-top: 3px solid #8b5cf6;
+            border: 2px solid var(--bg-tertiary);
+            border-top: 2px solid var(--accent-primary);
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 30px;
+            height: 30px;
             animation: spin 1s linear infinite;
+            margin: 0 auto;
         }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .active {
-            background: #2a2b2e;
+
+        .markdown-content {
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .markdown-content h1,
+        .markdown-content h2,
+        .markdown-content h3 {
+            color: var(--text-primary);
+            margin-bottom: var(--space-xs);
+            font-size: 1rem;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 
     <script>
-        // ========== CONFIGURAÇÃO FIREBASE ==========
+        // ========== FIREBASE CONFIG ==========
         const firebaseConfig = {
             apiKey: "AIzaSyB49R1ZycEX_4Q6vzaM7wNYdi5qf3Zfm2M",
             authDomain: "neuroai-study-3a97b.firebaseapp.com",
@@ -758,8 +1355,9 @@
         const db = firebase.firestore();
         const provider = new firebase.auth.GoogleAuthProvider();
 
-        // ========== DADOS DA PLANILHA TEC CONCURSOS ==========
+        // ========== DADOS COMPLETOS DA PLANILHA TEC CONCURSOS ==========
         const DADOS_PLANILHA = [
+            // ADMINISTRAÇÃO FINANCEIRA (7 tópicos)
             { disciplina: "ADMINISTRAÇÃO FINANCEIRA E ORÇAMENTÁRIA", peso: 2, topico: "Instrumentos Orçamentários: PPA/ LDO/ LOA.", bloco: "Bloco II", cobranca: 0.171 },
             { disciplina: "ADMINISTRAÇÃO FINANCEIRA E ORÇAMENTÁRIA", peso: 2, topico: "Lei Complementar nº 101/2000:", bloco: "Bloco VII", cobranca: 0.16 },
             { disciplina: "ADMINISTRAÇÃO FINANCEIRA E ORÇAMENTÁRIA", peso: 2, topico: "Orçamento Público: Conceitos e Classificações.", bloco: "Bloco I", cobranca: 0.135 },
@@ -768,6 +1366,7 @@
             { disciplina: "ADMINISTRAÇÃO FINANCEIRA E ORÇAMENTÁRIA", peso: 2, topico: "Lei Complementar nº 101/2000:", bloco: "Bloco VIII", cobranca: 0.079 },
             { disciplina: "ADMINISTRAÇÃO FINANCEIRA E ORÇAMENTÁRIA", peso: 2, topico: "Créditos ordinários e adicionais.", bloco: "Bloco III", cobranca: 0.074 },
             
+            // AUDITORIA FISCAL (7 tópicos)
             { disciplina: "AUDITORIA FISCAL", peso: 2, topico: "Testes em áreas específicas das Demonstrações Contábeis", bloco: "Bloco VI", cobranca: 0.2 },
             { disciplina: "AUDITORIA FISCAL", peso: 2, topico: "NFe e EFD", bloco: "Bloco VII", cobranca: 0.19 },
             { disciplina: "AUDITORIA FISCAL", peso: 2, topico: "Testes e Procedimentos em Auditoria", bloco: "Bloco III", cobranca: 0.1 },
@@ -776,11 +1375,13 @@
             { disciplina: "AUDITORIA FISCAL", peso: 2, topico: "Opinião do auditor /Relatórios e Pareceres de Auditoria", bloco: "Bloco V", cobranca: 0.05 },
             { disciplina: "AUDITORIA FISCAL", peso: 2, topico: "Fraude e Erro (Auditoria)", bloco: "Bloco IV", cobranca: 0.046 },
             
+            // CONTABILIDADE DE CUSTOS (4 tópicos)
             { disciplina: "CONTABILIDADE DE CUSTOS", peso: 2, topico: "Custeio por Absorção:", bloco: "Bloco II", cobranca: 0.342 },
             { disciplina: "CONTABILIDADE DE CUSTOS", peso: 2, topico: "Custos para Decisão: p1", bloco: "Bloco III", cobranca: 0.263 },
             { disciplina: "CONTABILIDADE DE CUSTOS", peso: 2, topico: "Custos para Decisão: p2", bloco: "Bloco IV", cobranca: 0.184 },
             { disciplina: "CONTABILIDADE DE CUSTOS", peso: 2, topico: "Custos:", bloco: "Bloco I", cobranca: 0.172 },
             
+            // CONTABILIDADE GERAL (8 tópicos)
             { disciplina: "CONTABILIDADE GERAL", peso: 2, topico: "Demonstrações Contábeis: p2", bloco: "Bloco IX", cobranca: 0.311 },
             { disciplina: "CONTABILIDADE GERAL", peso: 2, topico: "Ativo: p1", bloco: "Bloco III", cobranca: 0.219 },
             { disciplina: "CONTABILIDADE GERAL", peso: 2, topico: "Demonstrações Contábeis: p1", bloco: "Bloco VIII", cobranca: 0.21 },
@@ -790,6 +1391,7 @@
             { disciplina: "CONTABILIDADE GERAL", peso: 2, topico: "Passivo exigível:", bloco: "Bloco VI", cobranca: 0.083 },
             { disciplina: "CONTABILIDADE GERAL", peso: 2, topico: "Ativo: p2", bloco: "Bloco IV", cobranca: 0.048 },
             
+            // DIREITO TRIBUTÁRIO (10 tópicos)
             { disciplina: "DIREITO TRIBUTÁRIO", peso: 2, topico: "Limitações Constitucionais ao Poder de Tributar (arts. 150 a 152 - CF/88)", bloco: "Bloco II", cobranca: 0.116 },
             { disciplina: "DIREITO TRIBUTÁRIO", peso: 2, topico: "Tributos (arts. 03-08, 16-18, 76-82 - CTN)", bloco: "Bloco I", cobranca: 0.1 },
             { disciplina: "DIREITO TRIBUTÁRIO", peso: 2, topico: "Garantias e Privilégios do Crédito Tributário (arts. 183 ao 193 - CTN) / Administração Tributária (arts. 194 ao 208; 210 - CTN)", bloco: "Bloco VIII", cobranca: 0.092 },
@@ -801,6 +1403,7 @@
             { disciplina: "DIREITO TRIBUTÁRIO", peso: 2, topico: "Competência Tributária", bloco: "Bloco III", cobranca: 0.056 },
             { disciplina: "DIREITO TRIBUTÁRIO", peso: 2, topico: "Impostos de Competência dos Municípios (art. 156 - CF/88)", bloco: "Bloco IX", cobranca: 0.032 },
             
+            // LEGISLAÇÃO TRIBUTÁRIA ESTADUAL (6 tópicos)
             { disciplina: "LEGISLAÇÃO TRIBUTÁRIA ESTADUAL", peso: 2, topico: "ICMS (CF/1988) p1", bloco: "Bloco I", cobranca: 0.39 },
             { disciplina: "LEGISLAÇÃO TRIBUTÁRIA ESTADUAL", peso: 2, topico: "ICMS (CF/1988) p2", bloco: "Bloco II", cobranca: 0.39 },
             { disciplina: "LEGISLAÇÃO TRIBUTÁRIA ESTADUAL", peso: 2, topico: "SIMPLES Nacional (LC nº 123/2006)", bloco: "Bloco V", cobranca: 0.17 },
@@ -808,11 +1411,13 @@
             { disciplina: "LEGISLAÇÃO TRIBUTÁRIA ESTADUAL", peso: 2, topico: "ITCMD (CF/1988)", bloco: "Bloco IV", cobranca: 0.1 },
             { disciplina: "LEGISLAÇÃO TRIBUTÁRIA ESTADUAL", peso: 2, topico: "Lei Complementar nº 24/1975 (CONFAZ) / Lei Complementar nº 160/2017 (remissão dos créditos tributários)", bloco: "Bloco VI", cobranca: 0.08 },
             
+            // LEGISLAÇÃO TRIBUTÁRIA MUNICIPAL (4 tópicos)
             { disciplina: "LEGISLAÇÃO TRIBUTÁRIA MUNICIPAL", peso: 2, topico: "ISS (CF/1988)", bloco: "Bloco I", cobranca: 0.315 },
             { disciplina: "LEGISLAÇÃO TRIBUTÁRIA MUNICIPAL", peso: 2, topico: "IPTU (CF/1988)", bloco: "Bloco III", cobranca: 0.2 },
             { disciplina: "LEGISLAÇÃO TRIBUTÁRIA MUNICIPAL", peso: 2, topico: "SIMPLES Nacional (LC nº 123/2006)", bloco: "Bloco V", cobranca: 0.15 },
             { disciplina: "LEGISLAÇÃO TRIBUTÁRIA MUNICIPAL", peso: 2, topico: "ITBI (CF/1988)", bloco: "Bloco IV", cobranca: 0.115 },
             
+            // DIREITO ADMINISTRATIVO (6 tópicos) - Peso 1
             { disciplina: "DIREITO ADMINISTRATIVO", peso: 1, topico: "Poderes da administração pública. / Atos Administrativos.", bloco: "Bloco II", cobranca: 0.095 },
             { disciplina: "DIREITO ADMINISTRATIVO", peso: 1, topico: "Servidores Públicos na CF/88. / Serviços Públicos.", bloco: "Bloco IV", cobranca: 0.074 },
             { disciplina: "DIREITO ADMINISTRATIVO", peso: 1, topico: "Lei nº 8.429/1992 (LIA).", bloco: "Bloco V", cobranca: 0.074 },
@@ -820,6 +1425,7 @@
             { disciplina: "DIREITO ADMINISTRATIVO", peso: 1, topico: "Responsabilidade Civil do Estado. (Jurisprudência) / Controle da Administração Pública. (Jurisprudência)", bloco: "Bloco III", cobranca: 0.046 },
             { disciplina: "DIREITO ADMINISTRATIVO", peso: 1, topico: "Princípios Administrativos. / Organização Administrativa. / Entidades do 3º Setor.", bloco: "Bloco I", cobranca: 0.034 },
             
+            // DIREITO CIVIL (8 tópicos) - Peso 1
             { disciplina: "DIREITO CIVIL", peso: 1, topico: "Do Direito das Obrigações:", bloco: "Bloco VI", cobranca: 0.19 },
             { disciplina: "DIREITO CIVIL", peso: 1, topico: "Bens imóveis, móveis e públicos: / Responsabilidade civil objetiva e subjetiva.", bloco: "Bloco IV", cobranca: 0.161 },
             { disciplina: "DIREITO CIVIL", peso: 1, topico: "Do Direito das Coisas (arts. 1.196 a 1.510) / Dos Direitos Reais (arts. 1.225 a 1.510)", bloco: "Bloco VII", cobranca: 0.16 },
@@ -829,6 +1435,7 @@
             { disciplina: "DIREITO CIVIL", peso: 1, topico: "Prescrição. Decadência.", bloco: "Bloco III", cobranca: 0.08 },
             { disciplina: "DIREITO CIVIL", peso: 1, topico: "Negócio Jurídico (arts. 104 a 184): / Prescrição. Decadência.", bloco: "Bloco II", cobranca: 0.06 },
             
+            // DIREITO CONSTITUCIONAL (9 tópicos) - Peso 1
             { disciplina: "DIREITO CONSTITUCIONAL", peso: 1, topico: "Controle de Constitucionalidade / Eficácia das Normas Constitucionais", bloco: "Bloco IX", cobranca: 0.115 },
             { disciplina: "DIREITO CONSTITUCIONAL", peso: 1, topico: "Direitos e Garantias Fundamentais (arts. 5-17) p1", bloco: "Bloco I", cobranca: 0.093 },
             { disciplina: "DIREITO CONSTITUCIONAL", peso: 1, topico: "Do Poder Legislativo (arts. 44 a 75):/ Do Processo Legislativo (arts. 59 a 69): / Da Fiscalização COFOP (arts. 70 a 75)", bloco: "Bloco V", cobranca: 0.092 },
@@ -839,16 +1446,19 @@
             { disciplina: "DIREITO CONSTITUCIONAL", peso: 1, topico: "Da Organização do Estado (arts. 18 a 36)", bloco: "Bloco III", cobranca: 0.049 },
             { disciplina: "DIREITO CONSTITUCIONAL", peso: 1, topico: "Da Ordem econômica e financeira (arts. 170 a 192)", bloco: "Bloco VIII", cobranca: 0.044 },
             
+            // DIREITO EMPRESARIAL (3 tópicos) - Peso 1
             { disciplina: "DIREITO EMPRESARIAL", peso: 1, topico: "Do Empresário (arts. 966 a 980 do CC)", bloco: "Bloco I", cobranca: 0.231 },
             { disciplina: "DIREITO EMPRESARIAL", peso: 1, topico: "Sociedade Limitada (arts. 1.052 a 1.087 do CC)", bloco: "Bloco III", cobranca: 0.143 },
             { disciplina: "DIREITO EMPRESARIAL", peso: 1, topico: "Sociedades Não Personificadas (arts. 986 a 996 do CC): / Sociedade Personificada (arts. 997 a 1.141 do CC)", bloco: "Bloco II", cobranca: 0.088 },
             
+            // DIREITO PENAL (5 tópicos) - Peso 1
             { disciplina: "DIREITO PENAL", peso: 1, topico: "Dos Crimes contra a Administração Pública (arts. 312 a 337-A - Código Penal): / Dos Crimes praticados por Funcionário Público (arts. 312 a 327 do CP)", bloco: "Bloco I", cobranca: 0.472 },
             { disciplina: "DIREITO PENAL", peso: 1, topico: "Da Teoria do Crime / O fato típico e seus elementos / Concurso de crimes. Ilicitude e causas de exclusão. / Culpabilidade. Elementos e causas de exclusão.", bloco: "Bloco VI", cobranca: 0.197 },
             { disciplina: "DIREITO PENAL", peso: 1, topico: "Dos Crimes contra a Fé Pública (arts. 293 a 311-A - Código Penal): / Da Falsidade Documental (arts. 296-305-CP)", bloco: "Bloco IV", cobranca: 0.163 },
             { disciplina: "DIREITO PENAL", peso: 1, topico: "Lei nº 8.137/1990 - Crimes contra a Ordem Tributária, Econômica e Relações de Consumo", bloco: "Bloco III", cobranca: 0.157 },
             { disciplina: "DIREITO PENAL", peso: 1, topico: "Da Aplicação da Lei penal (arts. 01° ao 12 do CP) e Princípios do Direito Penal.", bloco: "Bloco V", cobranca: 0.101 },
             
+            // PORTUGUÊS (5 tópicos) - Peso 1
             { disciplina: "PORTUGUÊS", peso: 1, topico: "Interpretação e Compreensão de Textos p1", bloco: "Bloco VI", cobranca: 0.35 },
             { disciplina: "PORTUGUÊS", peso: 1, topico: "Interpretação e Compreensão de Textos p2", bloco: "Bloco VIII", cobranca: 0.35 },
             { disciplina: "PORTUGUÊS", peso: 1, topico: "Interpretação e Compreensão de Textos p3", bloco: "Bloco VIII", cobranca: 0.35 },
@@ -862,12 +1472,13 @@
         let graficos = {};
         let filtroHojeAtivo = false;
         let metaSemanal = 500;
+        let diasProva = 90;
         
         const REVISOES = [1, 7, 15, 30, 60, 90];
         const NOMES_REV = ['R1', 'R7', 'R15', 'R30', 'R60', 'R90'];
 
-        // ========== FUNÇÃO PARA CRIAR DADOS DA PLANILHA ==========
-        function criarDadosDaPlanilha() {
+        // ========== FUNÇÕES DE INICIALIZAÇÃO ==========
+        function criarDadosIniciais() {
             const disciplinasMap = new Map();
             
             DADOS_PLANILHA.forEach(item => {
@@ -896,41 +1507,43 @@
                     data: '',
                     revisoes: [0, 0, 0, 0, 0, 0],
                     revQuestoes: [0, 0, 0, 0, 0, 0],
-                    revAcertos: [0, 0, 0, 0, 0, 0],
-                    sm2: {
-                        intervalo: 0,
-                        fator: 2.5,
-                        proximaRevisao: null
-                    }
+                    revAcertos: [0, 0, 0, 0, 0, 0]
                 });
             });
             
             return Array.from(disciplinasMap.values());
         }
 
-        // ========== INICIALIZAÇÃO ==========
         function carregarDados() {
-            const salvos = localStorage.getItem('neuroai_dados_tecconcursos');
+            const salvos = localStorage.getItem('neuroai_dados_completo_v7');
             if (salvos) {
                 try {
-                    appData = JSON.parse(salvos);
+                    const parsed = JSON.parse(salvos);
+                    appData = parsed.data || [];
+                    metaSemanal = parsed.meta || 500;
+                    diasProva = parsed.diasProva || 90;
+                    
+                    // Atualizar inputs
+                    const diasInput = document.getElementById('diasProvaInput');
+                    if (diasInput) diasInput.value = diasProva;
+                    
+                    const metaInput = document.getElementById('metaInput');
+                    if (metaInput) metaInput.value = metaSemanal;
+                    
+                    document.getElementById('vitalMeta').textContent = metaSemanal;
+                    document.getElementById('vitalDias').textContent = diasProva;
                 } catch (e) {
-                    appData = criarDadosDaPlanilha();
+                    appData = criarDadosIniciais();
                 }
             } else {
-                appData = criarDadosDaPlanilha();
+                appData = criarDadosIniciais();
             }
-            
-            const metaSalva = localStorage.getItem('neuroai_meta_90d');
-            if (metaSalva) metaSemanal = parseInt(metaSalva);
-            
             atualizarTudo();
         }
 
         // ========== AUTENTICAÇÃO ==========
         window.login = function() {
-            auth.signInWithPopup(provider)
-                .catch(error => alert('Erro ao logar: ' + error.message));
+            auth.signInWithPopup(provider).catch(error => alert('Erro: ' + error.message));
         };
 
         window.logout = function() {
@@ -939,33 +1552,28 @@
 
         auth.onAuthStateChanged(usuario => {
             usuarioAtual = usuario;
-            
             const loginBtn = document.getElementById('loginBtn');
-            const userInfo = document.getElementById('userInfo');
+            const userProfile = document.getElementById('userProfile');
             const userAvatar = document.getElementById('userAvatar');
             const userName = document.getElementById('userName');
-            const syncStatus = document.getElementById('syncStatus');
+            const userEmail = document.getElementById('userEmail');
             const syncText = document.getElementById('syncText');
             
             if (usuario) {
                 loginBtn.style.display = 'none';
-                userInfo.style.display = 'flex';
+                userProfile.style.display = 'flex';
                 userAvatar.src = usuario.photoURL || '';
-                userName.textContent = usuario.displayName?.split(' ')[0] || 'Usuário';
-                
-                syncStatus.style.background = '#34d399';
-                syncText.textContent = 'Sincronizado';
-                syncText.style.color = '#34d399';
+                userName.textContent = usuario.displayName || 'Usuário';
+                userEmail.textContent = usuario.email || '';
+                syncText.textContent = 'Online';
+                syncText.className = 'vital-value online';
                 
                 carregarDadosNuvem();
             } else {
                 loginBtn.style.display = 'block';
-                userInfo.style.display = 'none';
-                
-                syncStatus.style.background = '#6b7280';
+                userProfile.style.display = 'none';
                 syncText.textContent = 'Offline';
-                syncText.style.color = '#6b7280';
-                
+                syncText.className = 'vital-value offline';
                 carregarDados();
             }
         });
@@ -976,7 +1584,7 @@
                 const doc = await db.collection('usuarios').doc(usuarioAtual.uid).get();
                 if (doc.exists && doc.data().dados) {
                     appData = doc.data().dados;
-                    localStorage.setItem('neuroai_dados_tecconcursos', JSON.stringify(appData));
+                    localStorage.setItem('neuroai_dados_completo_v7', JSON.stringify(appData));
                     atualizarTudo();
                 }
             } catch (error) {
@@ -991,49 +1599,35 @@
                     dados: appData,
                     ultimaAtualizacao: new Date().toISOString()
                 });
-                document.getElementById('syncStatus').style.background = '#34d399';
             } catch (error) {
                 console.error('Erro ao salvar:', error);
-                document.getElementById('syncStatus').style.background = '#ef4444';
             }
         }
 
         // ========== FUNÇÕES DE CÁLCULO ==========
         function calcularEstatisticas() {
-            let totalQuestoes = 0;
-            let totalAcertos = 0;
-            let revisoesHoje = 0;
-            const hoje = new Date();
-            hoje.setHours(0, 0, 0, 0);
-            
+            let totalQuestoes = 0, totalAcertos = 0, revisoesHoje = 0;
+            const hoje = new Date(); hoje.setHours(0,0,0,0);
             const statsPorDisciplina = {};
-            const revisoesPorDia = [0, 0, 0, 0, 0, 0];
+            const revisoesPorDia = [0,0,0,0,0,0];
             
             appData.forEach(disciplina => {
                 if (!statsPorDisciplina[disciplina.nome]) {
-                    statsPorDisciplina[disciplina.nome] = { 
-                        questoes: 0, 
-                        acertos: 0,
-                        peso: disciplina.peso || 1
-                    };
+                    statsPorDisciplina[disciplina.nome] = { questoes: 0, acertos: 0 };
                 }
                 
                 disciplina.topicos.forEach(topico => {
                     totalQuestoes += topico.questoes || 0;
                     totalAcertos += topico.acertos || 0;
-                    
                     statsPorDisciplina[disciplina.nome].questoes += topico.questoes || 0;
                     statsPorDisciplina[disciplina.nome].acertos += topico.acertos || 0;
                     
                     if (topico.data) {
                         const dataBase = new Date(topico.data);
-                        dataBase.setHours(0, 0, 0, 0);
-                        
+                        dataBase.setHours(0,0,0,0);
                         REVISOES.forEach((dias, idx) => {
                             const dataRev = new Date(dataBase);
                             dataRev.setDate(dataRev.getDate() + dias);
-                            dataRev.setHours(0, 0, 0, 0);
-                            
                             if (dataRev <= hoje && !topico.revisoes[idx]) {
                                 revisoesHoje++;
                                 revisoesPorDia[idx]++;
@@ -1053,358 +1647,285 @@
             };
         }
 
-        // ========== ALGORITMO SM-2 ==========
-        function aplicarSM2(topico, qualidade) {
-            if (!topico.sm2) {
-                topico.sm2 = { intervalo: 0, fator: 2.5, proximaRevisao: null };
-            }
-            
-            const sm2 = topico.sm2;
-            
-            if (qualidade === 0) { // Difícil
-                sm2.intervalo = 1;
-                sm2.fator = Math.max(1.3, sm2.fator - 0.2);
-            } else if (qualidade === 1) { // Médio
-                if (sm2.intervalo === 0) sm2.intervalo = 1;
-                else if (sm2.intervalo === 1) sm2.intervalo = 6;
-                else sm2.intervalo = Math.round(sm2.intervalo * sm2.fator);
-            } else { // Fácil
-                if (sm2.intervalo === 0) sm2.intervalo = 1;
-                else if (sm2.intervalo === 1) sm2.intervalo = 6;
-                else sm2.intervalo = Math.round(sm2.intervalo * sm2.fator);
-                sm2.fator = Math.min(2.5, sm2.fator + 0.15);
-            }
-            
-            const hoje = new Date();
-            const proxima = new Date(hoje);
-            proxima.setDate(hoje.getDate() + sm2.intervalo);
-            sm2.proximaRevisao = proxima.toISOString().split('T')[0];
-            
-            salvarDados();
-        }
-
         // ========== RENDERIZAÇÃO TABELA ==========
         function desenharTabela() {
-            const tbody = document.getElementById('tabelaBody');
-            if (!tbody) return;
+            const container = document.getElementById('tabelaContainer');
+            if (!container) return;
             
-            let html = '';
-            const hoje = new Date();
-            hoje.setHours(0, 0, 0, 0);
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 16px;"></th>
+                            <th>DISCIPLINA / TÓPICO - BLOCO</th>
+                            <th style="width: 70px;">RELEV</th>
+                            <th style="width: 70px;">LINK</th>
+                            <th style="width: 35px;">VISTO</th>
+                            <th style="width: 40px;">QTD</th>
+                            <th style="width: 40px;">AC</th>
+                            <th style="width: 35px;">%</th>
+                            <th colspan="3" style="width: 95px;">R1</th>
+                            <th colspan="3" style="width: 95px;">R7</th>
+                            <th colspan="3" style="width: 95px;">R15</th>
+                            <th colspan="3" style="width: 95px;">R30</th>
+                            <th colspan="3" style="width: 95px;">R60</th>
+                            <th colspan="3" style="width: 95px;">R90</th>
+                            <th style="width: 20px;"></th>
+                        </tr>
+                        <tr>
+                            <th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th>
+                            <th>S</th><th>Q</th><th>A%</th>
+                            <th>S</th><th>Q</th><th>A%</th>
+                            <th>S</th><th>Q</th><th>A%</th>
+                            <th>S</th><th>Q</th><th>A%</th>
+                            <th>S</th><th>Q</th><th>A%</th>
+                            <th>S</th><th>Q</th><th>A%</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            const hoje = new Date(); hoje.setHours(0,0,0,0);
+            let colorIndex = 0;
             
             appData.forEach(disciplina => {
-                // Linha da disciplina
                 if (!filtroHojeAtivo) {
                     html += `
-                        <tr class="tr-disciplina">
-                            <td onclick="toggleDisciplina('${disciplina.id}')" style="cursor: pointer; text-align: center;">
-                                ${disciplina.expandido ? '▼' : '▶'}
-                            </td>
+                        <tr class="disciplina-row" data-color="${colorIndex % 6}">
+                            <td onclick="toggleDisciplina('${disciplina.id}')" style="cursor: pointer; text-align: center; font-size: 0.8rem;">${disciplina.expandido ? '▼' : '▶'}</td>
                             <td>
-                                <div class="flex items-center gap-2">
-                                    <input class="input-clean font-bold" value="${disciplina.nome}" 
-                                        onblur="atualizarDisciplina('${disciplina.id}', 'nome', this.value)">
-                                    <button class="btn-add-topico" onclick="addTopico('${disciplina.id}')">+ Tópico</button>
+                                <div style="display: flex; align-items: center; gap: 2px; flex-wrap: wrap;">
+                                    <input class="disciplina-name" value="${disciplina.nome}" onblur="atualizarDisciplina('${disciplina.id}', 'nome', this.value)" style="font-size: 0.85rem; font-weight: 600;">
+                                    <span class="peso-texto">Peso: ${disciplina.peso}</span>
+                                    <button onclick="addTopico('${disciplina.id}')" class="btn-add-topico" title="Adicionar tópico">+</button>
                                 </div>
-                            </td>
-                            <td></td>
-                            <td class="text-center">
-                                <select class="input-clean text-center w-16" onchange="atualizarDisciplina('${disciplina.id}', 'peso', this.value)">
-                                    <option value="3" ${disciplina.peso === 3 ? 'selected' : ''}>3</option>
-                                    <option value="2" ${disciplina.peso === 2 ? 'selected' : ''}>2</option>
-                                    <option value="1" ${disciplina.peso === 1 ? 'selected' : ''}>1</option>
-                                </select>
                             </td>
                             <td colspan="20"></td>
                         </tr>
                     `;
+                    colorIndex++;
                 }
                 
-                // Tópicos
                 if (disciplina.expandido || filtroHojeAtivo) {
                     disciplina.topicos.forEach(topico => {
                         if (filtroHojeAtivo) {
-                            let temRevisaoHoje = false;
+                            let temRevisao = false;
                             if (topico.data) {
                                 const dataBase = new Date(topico.data);
-                                dataBase.setHours(0, 0, 0, 0);
-                                
+                                dataBase.setHours(0,0,0,0);
                                 REVISOES.forEach((dias, idx) => {
                                     const dataRev = new Date(dataBase);
                                     dataRev.setDate(dataRev.getDate() + dias);
-                                    dataRev.setHours(0, 0, 0, 0);
-                                    if (dataRev <= hoje && !topico.revisoes[idx]) {
-                                        temRevisaoHoje = true;
-                                    }
+                                    if (dataRev <= hoje && !topico.revisoes[idx]) temRevisao = true;
                                 });
                             }
-                            if (!temRevisaoHoje) return;
+                            if (!temRevisao) return;
                         }
                         
                         const perc = topico.questoes > 0 ? Math.round(topico.acertos / topico.questoes * 100) : 0;
-                        const percClass = perc >= 70 ? 'text-green-400' : perc >= 50 ? 'text-yellow-400' : 'text-red-400';
+                        const percClass = perc >= 70 ? 'color: var(--green);' : perc >= 50 ? 'color: var(--yellow);' : 'color: var(--red);';
                         
-                        let relevanciaClass = 'relevancia-baixa';
-                        if (topico.relevancia >= 20) relevanciaClass = 'relevancia-alta';
-                        else if (topico.relevancia >= 10) relevanciaClass = 'relevancia-media';
+                        let relevanciaClass = 'baixa';
+                        if (topico.relevancia >= 20) relevanciaClass = 'alta';
+                        else if (topico.relevancia >= 10) relevanciaClass = 'media';
                         
                         html += `
                             <tr>
                                 <td></td>
-                                <td>
-                                    <div class="flex items-center gap-2">
-                                        <input class="input-clean" value="${topico.nome}" 
-                                            onblur="atualizarTopico('${disciplina.id}', '${topico.id}', 'nome', this.value)">
+                                <td><input class="input-clean" value="${topico.nome}" onblur="atualizarTopico('${disciplina.id}', '${topico.id}', 'nome', this.value)" style="font-size: 0.8rem;"></td>
+                                <td style="text-align: center;">
+                                    <div class="relevancia-container">
+                                        <span class="badge badge-relevancia ${relevanciaClass}">${topico.relevancia}%</span>
+                                        <input type="range" min="0" max="100" value="${topico.relevancia}" class="relevancia-slider" onchange="atualizarRelevancia('${disciplina.id}', '${topico.id}', this.value)">
                                     </div>
                                 </td>
-                                <td class="text-center">
-                                    <div class="flex flex-col items-center">
-                                        <span class="relevancia-badge ${relevanciaClass}">${topico.relevancia || 0}%</span>
-                                        <input type="range" min="0" max="100" value="${topico.relevancia || 0}" 
-                                            onchange="atualizarTopico('${disciplina.id}', '${topico.id}', 'relevancia', this.value)"
-                                            style="width: 60px;" class="mt-1">
-                                    </div>
-                                </td>
-                                <td></td>
-                                <td class="text-center">
-                                    <input class="input-mini" value="${topico.questoes || 0}" 
-                                        onchange="atualizarTopico('${disciplina.id}', '${topico.id}', 'questoes', this.value)">
-                                </td>
-                                <td class="text-center">
-                                    <input class="input-mini" value="${topico.acertos || 0}" 
-                                        onchange="atualizarTopico('${disciplina.id}', '${topico.id}', 'acertos', this.value)">
-                                </td>
-                                <td class="text-center font-bold ${percClass}">${perc}%</td>
-                                <td class="text-center">
-                                    <div class="flex items-center gap-1">
-                                        <input class="input-clean text-xs" placeholder="Link TEC" value="${topico.link || ''}" 
-                                            onblur="atualizarTopico('${disciplina.id}', '${topico.id}', 'link', this.value)">
+                                <td style="text-align: center;">
+                                    <div style="display: flex; align-items: center; gap: 2px;">
+                                        <input class="input-clean" style="width: 45px; font-size: 0.7rem; padding: 2px;" placeholder="Link" value="${topico.link || ''}" onblur="atualizarTopico('${disciplina.id}', '${topico.id}', 'link', this.value)">
                                         ${topico.link ? `<a href="${topico.link}" target="_blank" class="link-tec">🔗</a>` : ''}
                                     </div>
                                 </td>
-                                <td class="text-center">
-                                    <input type="checkbox" ${topico.data ? 'checked' : ''} 
-                                        onchange="marcarData('${disciplina.id}', '${topico.id}', this.checked)"
-                                        style="width: 18px; height: 18px;">
+                                <td style="text-align: center;">
+                                    <input type="checkbox" class="checkbox-estudado" ${topico.data ? 'checked' : ''} onchange="marcarData('${disciplina.id}', '${topico.id}', this.checked)">
                                 </td>
+                                <td style="text-align: center;"><input class="input-mini ${topico.questoes === 0 ? 'zero' : ''}" value="${topico.questoes}" onchange="atualizarTopico('${disciplina.id}', '${topico.id}', 'questoes', this.value)"></td>
+                                <td style="text-align: center;"><input class="input-mini ${topico.acertos === 0 ? 'zero' : ''}" value="${topico.acertos}" onchange="atualizarTopico('${disciplina.id}', '${topico.id}', 'acertos', this.value)"></td>
+                                <td style="text-align: center; font-weight: 600; ${percClass} font-size: 0.75rem;">${perc}%</td>
                         `;
                         
-                        // 6 revisões com QTD, AC e %
                         for (let i = 0; i < 6; i++) {
                             const statusClass = topico.revisoes[i] ? 'done' : 
                                 (topico.data && new Date(new Date(topico.data).getTime() + REVISOES[i]*24*60*60*1000) <= hoje ? 'pending' : 'future');
                             
                             const revPerc = topico.revQuestoes[i] > 0 ? Math.round(topico.revAcertos[i] / topico.revQuestoes[i] * 100) : 0;
-                            const revPercClass = revPerc >= 70 ? 'text-green-400' : revPerc >= 50 ? 'text-yellow-400' : 'text-red-400';
+                            
+                            // Determinar cor do percentual: sem cor inicial, após preenchimento: verde≥85%, amarelo 70-84%, vermelho<70%
+                            let revPercClass = '';
+                            if (topico.revQuestoes[i] > 0) {
+                                if (revPerc >= 85) revPercClass = 'green';
+                                else if (revPerc >= 70) revPercClass = 'yellow';
+                                else revPercClass = 'red';
+                            }
+                            
+                            const revBgClass = i === 0 ? 'rev-bg-r1' : i === 1 ? 'rev-bg-r7' : i === 2 ? 'rev-bg-r15' : i === 3 ? 'rev-bg-r30' : i === 4 ? 'rev-bg-r60' : 'rev-bg-r90';
                             
                             html += `
-                                <td class="text-center rev-r${REVISOES[i]}" style="padding: 4px 2px;">
-                                    <div class="status-dot ${statusClass}" 
-                                        onclick="marcarRevisao('${disciplina.id}', '${topico.id}', ${i})"
-                                        title="${NOMES_REV[i]}"></div>
-                                </td>
-                                <td class="text-center rev-r${REVISOES[i]}" style="padding: 4px 2px;">
-                                    <input class="input-micro" value="${topico.revQuestoes[i] || 0}" 
-                                        onchange="atualizarRevQuestao('${disciplina.id}', '${topico.id}', ${i}, this.value)">
-                                </td>
-                                <td class="text-center rev-r${REVISOES[i]}" style="padding: 4px 2px;">
-                                    <div class="flex flex-col items-center">
-                                        <input class="input-micro" value="${topico.revAcertos[i] || 0}" 
-                                            onchange="atualizarRevAcerto('${disciplina.id}', '${topico.id}', ${i}, this.value)">
-                                        <span class="revisao-percent ${revPercClass}">${revPerc}%</span>
+                                <td class="${revBgClass}" style="text-align: center; padding: 2px;"><div class="status-dot ${statusClass}" onclick="marcarRevisao('${disciplina.id}', '${topico.id}', ${i})"></div></td>
+                                <td class="${revBgClass}" style="text-align: center; padding: 2px;"><input class="input-mini ${topico.revQuestoes[i] === 0 ? 'zero' : ''}" value="${topico.revQuestoes[i] || 0}" onchange="atualizarRev('${disciplina.id}', '${topico.id}', ${i}, 'revQuestoes', this.value)" style="width: 32px; height: 22px;"></td>
+                                <td class="${revBgClass}" style="text-align: center; padding: 2px;">
+                                    <div class="rev-a-percent">
+                                        <input class="input-mini ${topico.revAcertos[i] === 0 ? 'zero' : ''}" value="${topico.revAcertos[i] || 0}" onchange="atualizarRev('${disciplina.id}', '${topico.id}', ${i}, 'revAcertos', this.value)" style="width: 32px; height: 22px;">
+                                        <span class="rev-percent-value ${revPercClass}">${revPerc}%</span>
                                     </div>
                                 </td>
                             `;
                         }
                         
-                        // SM-2 Buttons
-                        html += `
-                                <td class="text-center">
-                                    <div class="sm2-buttons">
-                                        <button class="sm2-btn hard" onclick="aplicarSM2Cliente('${disciplina.id}', '${topico.id}', 0)" title="Difícil">!</button>
-                                        <button class="sm2-btn medium" onclick="aplicarSM2Cliente('${disciplina.id}', '${topico.id}', 1)" title="Médio">~</button>
-                                        <button class="sm2-btn easy" onclick="aplicarSM2Cliente('${disciplina.id}', '${topico.id}', 2)" title="Fácil">✓</button>
-                                    </div>
-                                    <div class="text-xs text-gray-500 mt-1">
-                                        ${topico.sm2?.proximaRevisao ? 'Próx: ' + new Date(topico.sm2.proximaRevisao).toLocaleDateString() : ''}
-                                    </div>
-                                </td>
-                                <td class="text-center">
-                                    <button class="text-red-400 hover:text-red-300" onclick="deletarTopico('${disciplina.id}', '${topico.id}')">🗑️</button>
-                                </td>
-                            </tr>
-                        `;
+                        html += `<td style="text-align: center;"><button onclick="deletarTopico('${disciplina.id}', '${topico.id}')" style="background: none; border: none; color: var(--red); cursor: pointer; font-size: 0.8rem;">✕</button></td></tr>`;
                     });
                 }
             });
             
-            if (filtroHojeAtivo && html === '') {
-                html = '<tr><td colspan="30" class="text-center py-8 text-gray-500">🎯 Nenhuma revisão pendente para hoje</td></tr>';
+            if (filtroHojeAtivo && html.indexOf('<tr') === -1) {
+                html += '<tr><td colspan="30" style="text-align: center; padding: var(--space-lg); color: var(--text-tertiary);">🎯 Nenhuma revisão pendente para hoje</td></tr>';
             }
             
-            tbody.innerHTML = html;
+            html += '</tbody></table>';
+            container.innerHTML = html;
         }
 
-        // ========== FUNÇÕES DE AÇÃO ==========
-        window.addTopico = function(disciplinaId) {
-            const disciplina = appData.find(d => d.id === disciplinaId);
-            if (!disciplina) return;
-            
-            const novoTopico = {
-                id: 'c' + Date.now() + Math.random(),
-                nome: 'Novo Tópico - Bloco ?',
-                relevancia: 10,
-                link: '',
-                questoes: 0,
-                acertos: 0,
-                data: '',
-                revisoes: [0, 0, 0, 0, 0, 0],
-                revQuestoes: [0, 0, 0, 0, 0, 0],
-                revAcertos: [0, 0, 0, 0, 0, 0],
-                sm2: {
-                    intervalo: 0,
-                    fator: 2.5,
-                    proximaRevisao: null
-                }
-            };
-            
-            disciplina.topicos.push(novoTopico);
-            disciplina.expandido = true;
-            salvarDados();
-            desenharTabela();
-        };
-
-        window.toggleDisciplina = function(id) {
-            const disc = appData.find(d => d.id === id);
-            if (disc) {
-                disc.expandido = !disc.expandido;
-                desenharTabela();
-                salvarDados();
-            }
-        };
-
-        window.atualizarDisciplina = function(id, campo, valor) {
-            const disc = appData.find(d => d.id === id);
-            if (disc) {
-                disc[campo] = campo === 'peso' ? parseInt(valor) : valor;
-                salvarDados();
-            }
-        };
-
-        window.atualizarTopico = function(discId, topId, campo, valor) {
+        // ========== NOVA FUNÇÃO PARA ATUALIZAR RELEVÂNCIA ==========
+        window.atualizarRelevancia = function(discId, topId, valor) {
             const disc = appData.find(d => d.id === discId);
             const top = disc?.topicos.find(t => t.id === topId);
             if (top) {
-                if (campo === 'questoes' || campo === 'acertos' || campo === 'relevancia') {
+                top.relevancia = parseInt(valor) || 0;
+                salvarDados();
+                desenharTabela();
+            }
+        };
+
+        // ========== FUNÇÕES DE AÇÃO ==========
+        window.toggleDisciplina = (id) => {
+            const disc = appData.find(d => d.id === id);
+            if (disc) { disc.expandido = !disc.expandido; salvarDados(); desenharTabela(); }
+        };
+
+        window.atualizarDisciplina = (id, campo, valor) => {
+            const disc = appData.find(d => d.id === id);
+            if (disc) { disc[campo] = campo === 'peso' ? parseInt(valor) : valor; salvarDados(); }
+        };
+
+        window.atualizarTopico = (discId, topId, campo, valor) => {
+            const disc = appData.find(d => d.id === discId);
+            const top = disc?.topicos.find(t => t.id === topId);
+            if (top) {
+                if (campo === 'questoes' || campo === 'acertos') {
                     top[campo] = parseInt(valor) || 0;
                 } else {
                     top[campo] = valor;
                 }
-                salvarDados();
+                salvarDados(); 
                 atualizarDashboard();
+                desenharTabela();
             }
         };
 
-        window.atualizarRevQuestao = function(discId, topId, index, valor) {
+        window.atualizarRev = (discId, topId, index, campo, valor) => {
             const disc = appData.find(d => d.id === discId);
             const top = disc?.topicos.find(t => t.id === topId);
             if (top) {
-                top.revQuestoes[index] = parseInt(valor) || 0;
-                salvarDados();
-                desenharTabela();
+                top[campo][index] = parseInt(valor) || 0;
+                salvarDados(); 
+                desenharTabela(); 
                 atualizarDashboard();
             }
         };
 
-        window.atualizarRevAcerto = function(discId, topId, index, valor) {
-            const disc = appData.find(d => d.id === discId);
-            const top = disc?.topicos.find(t => t.id === topId);
-            if (top) {
-                top.revAcertos[index] = parseInt(valor) || 0;
-                salvarDados();
-                desenharTabela();
-                atualizarDashboard();
-            }
-        };
-
-        window.marcarData = function(discId, topId, checked) {
+        window.marcarData = (discId, topId, checked) => {
             const disc = appData.find(d => d.id === discId);
             const top = disc?.topicos.find(t => t.id === topId);
             if (top) {
                 top.data = checked ? new Date().toISOString().split('T')[0] : '';
-                salvarDados();
-                desenharTabela();
-                atualizarDashboard();
+                salvarDados(); desenharTabela(); atualizarDashboard();
             }
         };
 
-        window.marcarRevisao = function(discId, topId, index) {
+        window.marcarRevisao = (discId, topId, index) => {
             const disc = appData.find(d => d.id === discId);
             const top = disc?.topicos.find(t => t.id === topId);
             if (top) {
                 top.revisoes[index] = top.revisoes[index] ? 0 : 1;
-                salvarDados();
-                desenharTabela();
-                atualizarDashboard();
+                salvarDados(); desenharTabela(); atualizarDashboard();
             }
         };
 
-        window.aplicarSM2Cliente = function(discId, topId, qualidade) {
+        window.addTopico = (discId) => {
             const disc = appData.find(d => d.id === discId);
-            const top = disc?.topicos.find(t => t.id === topId);
-            if (top) {
-                aplicarSM2(top, qualidade);
-                desenharTabela();
-                atualizarDashboard();
+            if (disc) {
+                disc.topicos.push({
+                    id: 'c' + Date.now() + Math.random(),
+                    nome: 'Novo Tópico - Bloco ?',
+                    relevancia: 10,
+                    link: '',
+                    questoes: 0,
+                    acertos: 0,
+                    data: '',
+                    revisoes: [0,0,0,0,0,0],
+                    revQuestoes: [0,0,0,0,0,0],
+                    revAcertos: [0,0,0,0,0,0]
+                });
+                disc.expandido = true;
+                salvarDados(); desenharTabela();
             }
         };
 
-        window.deletarTopico = function(discId, topId) {
-            if (!confirm('Excluir este tópico?')) return;
+        window.deletarTopico = (discId, topId) => {
             const disc = appData.find(d => d.id === discId);
             if (disc) {
                 disc.topicos = disc.topicos.filter(t => t.id !== topId);
-                salvarDados();
-                desenharTabela();
-                atualizarDashboard();
+                salvarDados(); desenharTabela(); atualizarDashboard();
             }
         };
 
-        window.showAddDisciplina = function() {
-            document.getElementById('addForm').style.display = 'flex';
-        };
+        window.showAddDisciplina = () => document.getElementById('addForm').style.display = 'block';
+        window.hideAddDisciplina = () => document.getElementById('addForm').style.display = 'none';
 
-        window.hideAddDisciplina = function() {
-            document.getElementById('addForm').style.display = 'none';
-        };
-
-        window.addDisciplina = function() {
+        window.addDisciplina = () => {
             const nome = document.getElementById('novaDisciplina').value.trim();
-            const peso = document.getElementById('pesoDisciplina').value;
-            
             if (!nome) return;
-            
+            const peso = parseInt(document.getElementById('pesoDisciplina').value);
             appData.push({
-                id: 'd' + Date.now() + '_' + Math.random(),
+                id: 'd' + Date.now() + Math.random(),
                 nome: nome,
-                peso: parseInt(peso),
+                peso: peso,
                 expandido: true,
                 topicos: []
             });
-            
             document.getElementById('novaDisciplina').value = '';
-            document.getElementById('addForm').style.display = 'none';
-            
-            salvarDados();
+            hideAddDisciplina();
+            salvarDados(); desenharTabela();
+        };
+
+        window.toggleFiltroHoje = () => {
+            filtroHojeAtivo = !filtroHojeAtivo;
+            const btn = document.getElementById('btnHoje');
+            btn.style.background = filtroHojeAtivo ? 'var(--accent-soft)' : '';
+            btn.style.borderColor = filtroHojeAtivo ? 'var(--accent-primary)' : '';
             desenharTabela();
         };
 
-        window.toggleFiltroHoje = function() {
-            filtroHojeAtivo = !filtroHojeAtivo;
-            const btn = document.getElementById('btnHoje');
-            btn.style.background = filtroHojeAtivo ? 'rgba(66, 133, 244, 0.2)' : '';
-            btn.style.borderColor = filtroHojeAtivo ? '#4285f4' : '';
-            desenharTabela();
+        // ========== FUNÇÃO PARA ATUALIZAR DIAS ATÉ PROVA ==========
+        window.atualizarDiasProva = function() {
+            const input = document.getElementById('diasProvaInput');
+            const novosDias = parseInt(input.value);
+            if (novosDias > 0 && novosDias <= 365) {
+                diasProva = novosDias;
+                document.getElementById('vitalDias').textContent = diasProva;
+                salvarDados();
+                atualizarDashboard();
+            }
         };
 
         // ========== DASHBOARD ==========
@@ -1414,24 +1935,30 @@
             document.getElementById('kpiTotal').textContent = stats.totalQuestoes;
             document.getElementById('kpiPerf').textContent = stats.desempenho.toFixed(1) + '%';
             document.getElementById('kpiRev').textContent = stats.revisoesHoje;
+            document.getElementById('vitalTotal').textContent = stats.totalQuestoes;
+            document.getElementById('vitalPerf').textContent = stats.desempenho.toFixed(1) + '%';
+            document.getElementById('vitalRev').textContent = stats.revisoesHoje;
+            document.getElementById('vitalMeta').textContent = metaSemanal;
+            document.getElementById('vitalDias').textContent = diasProva;
             
-            let totalRevisoesPrevistas = 0;
-            let totalRevisoesFeitas = 0;
-            appData.forEach(d => {
-                d.topicos.forEach(t => {
-                    if (t.data) {
-                        totalRevisoesPrevistas += 6;
-                        totalRevisoesFeitas += t.revisoes.reduce((a,b) => a + b, 0);
-                    }
-                });
-            });
-            const progresso90 = totalRevisoesPrevistas > 0 ? (totalRevisoesFeitas / totalRevisoesPrevistas * 100) : 0;
-            document.getElementById('kpi90d').textContent = progresso90.toFixed(0) + '%';
+            // Calcular progresso do ciclo baseado nos dias restantes
+            let primeiraData = null;
+            appData.forEach(d => d.topicos.forEach(t => { if (t.data) { const dt = new Date(t.data); if (!primeiraData || dt < primeiraData) primeiraData = dt; } }));
+            
+            const diasEstudo = primeiraData ? Math.ceil((new Date() - primeiraData) / (1000*60*60*24)) : 0;
+            const progressoCiclo = Math.min(100, (diasEstudo / diasProva * 100));
+            document.getElementById('kpi90d').textContent = progressoCiclo.toFixed(0) + '%';
+            
+            // Atualizar previsão na aba Metas
+            const diasRestantes = Math.max(0, diasProva - diasEstudo);
+            document.getElementById('previsaoEdital').textContent = diasRestantes;
+            document.getElementById('progressoCiclo').textContent = progressoCiclo.toFixed(0) + '%';
+            document.getElementById('barraCiclo').style.width = progressoCiclo + '%';
             
             desenharHeatmap();
             calcularUltimos7Dias();
             atualizarGraficos(stats);
-            verificarAlertasRevisoes(stats);
+            atualizarContadoresRevisoes(stats);
         }
 
         function desenharHeatmap() {
@@ -1440,72 +1967,44 @@
             
             const hoje = new Date();
             let html = '';
-            
             for (let i = 29; i >= 0; i--) {
-                const data = new Date();
-                data.setDate(hoje.getDate() - i);
+                const data = new Date(); data.setDate(hoje.getDate() - i);
                 const dataStr = data.toISOString().split('T')[0];
-                
                 let questoes = 0;
-                appData.forEach(d => {
-                    d.topicos.forEach(t => {
-                        if (t.data === dataStr) {
-                            questoes += t.questoes || 0;
-                        }
-                    });
-                });
+                appData.forEach(d => d.topicos.forEach(t => { if (t.data === dataStr) questoes += t.questoes || 0; }));
                 
-                let cor = '#2a2b2e';
+                let cor = 'var(--bg-tertiary)';
                 if (questoes > 0) {
-                    if (questoes < 5) cor = '#0b4f2c';
-                    else if (questoes < 10) cor = '#0e6a3a';
-                    else if (questoes < 15) cor = '#118c4a';
-                    else if (questoes < 20) cor = '#14a85a';
-                    else cor = '#34d399';
+                    if (questoes < 5) cor = '#1a3022';
+                    else if (questoes < 10) cor = '#1e4620';
+                    else if (questoes < 15) cor = '#2d6a4f';
+                    else cor = '#40916c';
                 }
-                
-                html += `<div class="heatmap-cell" style="background: ${cor}" title="${dataStr}: ${questoes} questões"></div>`;
+                html += `<div class="heatmap-cell" style="background: ${cor};" title="${dataStr}: ${questoes} questões"></div>`;
             }
-            
             container.innerHTML = html;
         }
 
         function calcularUltimos7Dias() {
             const hoje = new Date();
             let total = 0, acertos = 0;
-            const dadosDiarios = [];
+            const dados = [];
             
             for (let i = 6; i >= 0; i--) {
-                const data = new Date();
-                data.setDate(hoje.getDate() - i);
+                const data = new Date(); data.setDate(hoje.getDate() - i);
                 const dataStr = data.toISOString().split('T')[0];
-                
-                let diaQuestoes = 0;
-                let diaAcertos = 0;
-                
-                appData.forEach(d => {
-                    d.topicos.forEach(t => {
-                        if (t.data === dataStr) {
-                            diaQuestoes += t.questoes || 0;
-                            diaAcertos += t.acertos || 0;
-                        }
-                    });
-                });
-                
-                total += diaQuestoes;
-                acertos += diaAcertos;
-                dadosDiarios.push(diaQuestoes);
+                let q = 0, a = 0;
+                appData.forEach(d => d.topicos.forEach(t => { if (t.data === dataStr) { q += t.questoes || 0; a += t.acertos || 0; } }));
+                total += q; acertos += a; dados.push(q);
             }
             
-            const desempenho = total > 0 ? (acertos / total * 100).toFixed(1) : 0;
-            
-            document.getElementById('perf7d').textContent = desempenho + '%';
+            document.getElementById('perf7d').textContent = total > 0 ? (acertos/total*100).toFixed(1) + '%' : '0%';
             document.getElementById('total7d').textContent = total;
             document.getElementById('acertos7d').textContent = acertos;
             document.getElementById('erros7d').textContent = total - acertos;
             
             if (graficos.evolucao) {
-                graficos.evolucao.data.datasets[0].data = dadosDiarios;
+                graficos.evolucao.data.datasets[0].data = dados;
                 graficos.evolucao.update();
             }
         }
@@ -1514,219 +2013,160 @@
             const ctxDisc = document.getElementById('chartDisciplinas')?.getContext('2d');
             if (ctxDisc) {
                 const labels = Object.keys(stats.statsPorDisciplina);
-                const dados = labels.map(l => {
+                const data = labels.map(l => {
                     const d = stats.statsPorDisciplina[l];
                     return d.questoes > 0 ? (d.acertos / d.questoes * 100) : 0;
                 });
                 
                 if (graficos.disciplinas) graficos.disciplinas.destroy();
-                
                 graficos.disciplinas = new Chart(ctxDisc, {
                     type: 'bar',
-                    data: { labels, datasets: [{ label: 'Desempenho %', data: dados, backgroundColor: '#4285f4' }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { max: 100, grid: { color: '#2f3336' } } } }
+                    data: { labels, datasets: [{ label: 'Desempenho %', data, backgroundColor: '#2f6c9f', borderRadius: 4 }] },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        scales: { 
+                            y: { max: 100, grid: { color: '#2a2e36' }, ticks: { color: '#7e8799', font: { size: 9 } } },
+                            x: { ticks: { color: '#7e8799', font: { size: 8 } } }
+                        },
+                        plugins: { legend: { labels: { color: '#b0b8c5', font: { size: 9 } } } }
+                    }
                 });
             }
             
             const ctxRev = document.getElementById('chartRevisoes')?.getContext('2d');
             if (ctxRev) {
                 if (graficos.revisoes) graficos.revisoes.destroy();
-                
                 graficos.revisoes = new Chart(ctxRev, {
                     type: 'doughnut',
                     data: {
                         labels: NOMES_REV,
-                        datasets: [{ data: stats.revisoesPorDia, backgroundColor: ['#4285f4', '#fbbc04', '#ea4335', '#34a853', '#8b5cf6', '#ec4899'] }]
+                        datasets: [{ 
+                            data: stats.revisoesPorDia, 
+                            backgroundColor: ['#2f6c9f', '#8f6f2c', '#a14545', '#2b7a4b', '#5f4b8b', '#8b4b6d'],
+                            borderWidth: 0
+                        }]
                     },
-                    options: { responsive: true, maintainAspectRatio: false }
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        plugins: { 
+                            legend: { 
+                                position: 'bottom', 
+                                labels: { 
+                                    color: '#b0b8c5', 
+                                    font: { size: 8 },
+                                    boxWidth: 10,
+                                    padding: 8
+                                } 
+                            } 
+                        } 
+                    }
                 });
             }
             
             const ctxEvo = document.getElementById('chartEvolucao')?.getContext('2d');
-            if (ctxEvo) {
-                if (graficos.evolucao) graficos.evolucao.destroy();
-                
+            if (ctxEvo && !graficos.evolucao) {
                 graficos.evolucao = new Chart(ctxEvo, {
                     type: 'line',
-                    data: { labels: ['D-6','D-5','D-4','D-3','D-2','D-1','Hoje'], datasets: [{ data: [0,0,0,0,0,0,0], borderColor: '#8b5cf6', borderWidth: 2, pointRadius: 2, tension: 0.4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { x: { display: false }, y: { display: false } }, plugins: { legend: { display: false } } }
+                    data: { labels: ['D-6','D-5','D-4','D-3','D-2','D-1','Hoje'], datasets: [{ data: [0,0,0,0,0,0,0], borderColor: '#5f4b8b', borderWidth: 2, tension: 0.4, pointRadius: 1 }] },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        scales: { x: { display: false }, y: { display: false } }, 
+                        plugins: { legend: { display: false } } 
+                    }
                 });
             }
         }
 
-        function verificarAlertasRevisoes(stats) {
-            const alerta = document.getElementById('revisoesAlert');
-            if (stats.revisoesHoje > 0) {
-                alerta.style.display = 'flex';
-                document.getElementById('revisoesText').textContent = 
-                    `Você tem ${stats.revisoesHoje} revisões pendentes para hoje`;
-            } else {
-                alerta.style.display = 'none';
-            }
-            
+        function atualizarContadoresRevisoes(stats) {
             document.getElementById('countR1').textContent = stats.revisoesPorDia[0];
             document.getElementById('countR7').textContent = stats.revisoesPorDia[1];
             document.getElementById('countR15').textContent = stats.revisoesPorDia[2];
             document.getElementById('countR30').textContent = stats.revisoesPorDia[3];
             document.getElementById('countR60').textContent = stats.revisoesPorDia[4];
             document.getElementById('countR90').textContent = stats.revisoesPorDia[5];
+            
+            const alerta = document.getElementById('revisoesAlert');
+            if (stats.revisoesHoje > 0) {
+                alerta.style.display = 'block';
+                document.getElementById('revisoesText').textContent = `Você tem ${stats.revisoesHoje} revisões pendentes para hoje`;
+            } else {
+                alerta.style.display = 'none';
+            }
         }
 
         // ========== METAS ==========
         function atualizarMetas() {
             const stats = calcularEstatisticas();
-            
             document.getElementById('progressoMeta').textContent = `${stats.totalQuestoes} / ${metaSemanal}`;
-            const percentualMeta = Math.min(100, (stats.totalQuestoes / metaSemanal * 100));
-            document.getElementById('barraProgresso').style.width = percentualMeta + '%';
+            document.getElementById('barraProgresso').style.width = Math.min(100, (stats.totalQuestoes/metaSemanal*100)) + '%';
             
-            const diasDesdeInicio = calcularDiasDesdePrimeiroEstudo();
-            const progressoCiclo = Math.min(100, (diasDesdeInicio / 90 * 100));
-            document.getElementById('progressoCiclo').textContent = progressoCiclo.toFixed(0) + '%';
-            document.getElementById('barraCiclo').style.width = progressoCiclo + '%';
-            
-            const diasRestantes = Math.max(0, 90 - diasDesdeInicio);
-            document.getElementById('previsaoEdital').textContent = diasRestantes + ' dias';
+            // Já atualizado no dashboard
         }
 
-        function calcularDiasDesdePrimeiroEstudo() {
-            let primeiraData = null;
-            appData.forEach(d => {
-                d.topicos.forEach(t => {
-                    if (t.data) {
-                        const data = new Date(t.data);
-                        if (!primeiraData || data < primeiraData) {
-                            primeiraData = data;
-                        }
-                    }
-                });
-            });
-            
-            if (!primeiraData) return 0;
-            
-            const hoje = new Date();
-            const diffTime = Math.abs(hoje - primeiraData);
-            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        }
-
-        window.atualizarMeta = function() {
-            const input = document.getElementById('metaInput');
-            metaSemanal = parseInt(input.value) || 500;
-            localStorage.setItem('neuroai_meta_90d', metaSemanal);
+        window.atualizarMeta = () => {
+            const val = parseInt(document.getElementById('metaInput').value) || 500;
+            metaSemanal = val;
+            localStorage.setItem('neuroai_meta_dark_v7', val);
             atualizarMetas();
+            document.getElementById('vitalMeta').textContent = val;
+            salvarDados();
         };
 
-        // ========== FUNÇÕES IA (SIMULADA) ==========
+        // ========== IA SIMULADA ==========
         window.consultCoach = function() {
             const stats = calcularEstatisticas();
-            const feedback = document.getElementById('coachFeedback');
-            const coachText = document.getElementById('coachText');
+            const fb = document.getElementById('coachFeedback');
+            const txt = document.getElementById('coachText');
             
-            feedback.style.display = 'block';
-            coachText.innerHTML = '<div class="spinner w-4 h-4 inline-block mr-2"></div>Analisando...';
+            fb.style.display = 'block';
+            txt.innerHTML = '<div class="spinner" style="width: 18px; height: 18px; display: inline-block; margin-right: 8px;"></div> Analisando...';
             
             setTimeout(() => {
-                let diagnostico = '';
-                if (stats.desempenho < 50) {
-                    diagnostico = '🔴 Base teórica fraca. Foque em revisão antes de novas questões.';
-                } else if (stats.desempenho < 70) {
-                    diagnostico = '🟡 Conhecimento médio. Priorize as revisões R1 e R7.';
-                } else {
-                    diagnostico = '🟢 Bom desempenho! Hora de avançar para questões mais complexas.';
-                }
-                
-                coachText.innerHTML = `
-                    <p><strong>📊 Diagnóstico:</strong> ${diagnostico}</p>
-                    <p class="mt-2"><strong>🎯 Prioridade hoje:</strong> ${stats.revisoesHoje} revisões pendentes</p>
-                    <p class="mt-2"><strong>📅 Ciclo 90 dias:</strong> ${calcularDiasDesdePrimeiroEstudo()} dias estudando</p>
-                `;
+                let diag = stats.desempenho < 50 ? '🔴 Base teórica fraca.' : stats.desempenho < 70 ? '🟡 Conhecimento médio.' : '🟢 Bom desempenho!';
+                txt.innerHTML = `<div style="font-size: 0.9rem;"><p><strong>Diagnóstico:</strong> ${diag}</p>
+                                 <p><strong>Hoje:</strong> ${stats.revisoesHoje} revisões</p>
+                                 <p><strong>Meta:</strong> ${metaSemanal - stats.totalQuestoes} questões restantes</p>
+                                 <p><strong>Dias até a prova:</strong> ${diasProva}</p></div>`;
             }, 1000);
         };
 
         window.analisarPrioridades = function() {
             const prioridades = [];
+            appData.forEach(d => d.topicos.forEach(t => {
+                const perc = t.questoes > 0 ? (t.acertos/t.questoes*100) : 0;
+                if (t.questoes > 0 && perc < 60) prioridades.push({ disciplina: d.nome, topico: t.nome, perc: Math.round(perc) });
+            }));
+            prioridades.sort((a,b) => a.perc - b.perc);
             
-            appData.forEach(d => {
-                d.topicos.forEach(t => {
-                    const perc = t.questoes > 0 ? (t.acertos / t.questoes * 100) : 0;
-                    const peso = d.peso || 1;
-                    const relevancia = t.relevancia || 0;
-                    
-                    if (t.questoes > 0 && perc < 60) {
-                        prioridades.push({
-                            disciplina: d.nome,
-                            topico: t.nome,
-                            perc: Math.round(perc),
-                            peso: peso,
-                            relevancia: relevancia,
-                            urgencia: (100 - perc) * peso * (relevancia / 100)
-                        });
-                    }
-                });
-            });
-            
-            prioridades.sort((a, b) => b.urgencia - a.urgencia);
-            
-            let html = '<h3 class="text-lg font-bold mb-4">📋 Prioridades de Estudo</h3>';
-            
-            if (prioridades.length === 0) {
-                html += '<p>Parabéns! Nenhuma prioridade crítica identificada 🎉</p>';
-            } else {
-                prioridades.slice(0, 5).forEach(p => {
-                    html += `
-                        <div class="p-3 bg-gray-800 rounded mb-2">
-                            <div class="text-sm text-blue-400">${p.disciplina}</div>
-                            <div class="font-medium">${p.topico}</div>
-                            <div class="text-xs ${p.perc < 40 ? 'text-red-400' : 'text-yellow-400'} mt-1">${p.perc}% acerto · Relevância ${p.relevancia}% · Peso ${p.peso}</div>
-                        </div>
-                    `;
-                });
-            }
+            let html = '<h3 style="font-size: 1rem; margin-bottom: 0.5rem;">Prioridades</h3>';
+            if (prioridades.length === 0) html += '<p style="font-size: 0.9rem;">Nenhuma prioridade!</p>';
+            else prioridades.slice(0,5).forEach(p => html += `<p style="font-size: 0.9rem; margin-bottom: 0.3rem;"><strong>${p.disciplina}:</strong> ${p.topico} (${p.perc}%)</p>`);
             
             abrirModal('Prioridades IA', html);
         };
 
         window.mostrarRevisoesHoje = function() {
-            const stats = calcularEstatisticas();
-            const hoje = new Date();
-            hoje.setHours(0,0,0,0);
-            
-            let html = '<h3 class="text-lg font-bold mb-4">📅 Revisões para hoje</h3>';
+            const hoje = new Date(); hoje.setHours(0,0,0,0);
+            let html = '<h3 style="font-size: 1rem; margin-bottom: 0.5rem;">Revisões de hoje</h3>';
             let encontrou = false;
             
-            appData.forEach(d => {
-                d.topicos.forEach(t => {
-                    if (t.data) {
-                        const dataBase = new Date(t.data);
-                        dataBase.setHours(0,0,0,0);
-                        
-                        REVISOES.forEach((dias, idx) => {
-                            const dataRev = new Date(dataBase);
-                            dataRev.setDate(dataRev.getDate() + dias);
-                            dataRev.setHours(0,0,0,0);
-                            
-                            if (dataRev <= hoje && !t.revisoes[idx]) {
-                                encontrou = true;
-                                html += `
-                                    <div class="p-3 bg-gray-800 rounded mb-2">
-                                        <div class="flex justify-between">
-                                            <span class="text-sm" style="color: ${idx === 0 ? '#4285f4' : idx === 1 ? '#fbbc04' : idx === 2 ? '#ea4335' : idx === 3 ? '#34a853' : idx === 4 ? '#8b5cf6' : '#ec4899'}">
-                                                ${NOMES_REV[idx]}
-                                            </span>
-                                            <span class="text-xs text-gray-500">${d.nome}</span>
-                                        </div>
-                                        <div class="font-medium">${t.nome}</div>
-                                        <button class="btn btn-ai text-xs mt-2" onclick="marcarRevisao('${d.id}', '${t.id}', ${idx}); fecharModal();">Marcar como revisado</button>
-                                    </div>
-                                `;
-                            }
-                        });
-                    }
-                });
-            });
+            appData.forEach(d => d.topicos.forEach(t => {
+                if (t.data) {
+                    const base = new Date(t.data); base.setHours(0,0,0,0);
+                    REVISOES.forEach((dias, idx) => {
+                        const rev = new Date(base); rev.setDate(rev.getDate() + dias);
+                        if (rev <= hoje && !t.revisoes[idx]) {
+                            encontrou = true;
+                            html += `<p style="font-size: 0.9rem; margin-bottom: 0.3rem;"><span style="color: ${idx===0?'#2f6c9f':idx===1?'#8f6f2c':idx===2?'#a14545':idx===3?'#2b7a4b':idx===4?'#5f4b8b':'#8b4b6d'}; font-weight: 600;">${NOMES_REV[idx]}</span> - ${d.nome}: ${t.nome}</p>`;
+                        }
+                    });
+                }
+            }));
             
-            if (!encontrou) html += '<p class="text-gray-400">Nenhuma revisão pendente! 🎉</p>';
-            
+            if (!encontrou) html += '<p style="font-size: 0.9rem;">Nenhuma revisão pendente! 🎉</p>';
             abrirModal('Revisões do dia', html);
         };
 
@@ -1735,14 +2175,12 @@
             const dadosExport = {
                 data: appData,
                 meta: metaSemanal,
-                dataExport: new Date().toISOString(),
-                versao: '2.0'
+                diasProva: diasProva,
+                dataExport: new Date().toISOString()
             };
-            
             const blob = new Blob([JSON.stringify(dadosExport, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
+            a.href = URL.createObjectURL(blob);
             a.download = `neuroai_backup_${new Date().toISOString().split('T')[0]}.json`;
             a.click();
         };
@@ -1754,73 +2192,47 @@
             document.getElementById('metasView').style.display = tab === 'metas' ? 'block' : 'none';
             document.getElementById('revisoesView').style.display = tab === 'revisoes' ? 'block' : 'none';
             
-            ['dashboard', 'estudos', 'metas', 'revisoes'].forEach(t => {
-                const el = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
-                if (el) el.classList.remove('active');
-            });
-            
-            const activeTab = document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
-            if (activeTab) activeTab.classList.add('active');
+            document.getElementById('nav-dashboard').className = 'nav-item' + (tab === 'dashboard' ? ' active' : '');
+            document.getElementById('nav-estudos').className = 'nav-item' + (tab === 'estudos' ? ' active' : '');
+            document.getElementById('nav-metas').className = 'nav-item' + (tab === 'metas' ? ' active' : '');
+            document.getElementById('nav-revisoes').className = 'nav-item' + (tab === 'revisoes' ? ' active' : '');
             
             if (tab === 'estudos') desenharTabela();
-            if (tab === 'metas') atualizarMetas();
+            if (tab === 'metas') {
+                document.getElementById('diasProvaInput').value = diasProva;
+                atualizarMetas();
+            }
             if (tab === 'revisoes') {
                 const stats = calcularEstatisticas();
-                desenharTimelineRevisoes(stats);
-            }
-        };
-
-        function desenharTimelineRevisoes(stats) {
-            const timeline = document.getElementById('timelineRevisoes');
-            if (!timeline) return;
-            
-            const hoje = new Date();
-            let html = '';
-            
-            for (let dias = 0; dias < 30; dias++) {
-                const data = new Date();
-                data.setDate(hoje.getDate() + dias);
-                const dataStr = data.toLocaleDateString('pt-BR');
-                
-                let revisoesDia = 0;
-                let tipos = [];
-                
-                appData.forEach(d => {
-                    d.topicos.forEach(t => {
+                let timeline = '';
+                const hoje = new Date();
+                for (let d = 0; d < 30; d++) {
+                    const data = new Date(); data.setDate(hoje.getDate() + d);
+                    let count = 0, tipos = [];
+                    appData.forEach(disc => disc.topicos.forEach(t => {
                         if (t.data) {
-                            const dataBase = new Date(t.data);
-                            dataBase.setHours(0,0,0,0);
-                            
-                            REVISOES.forEach((diasRev, idx) => {
-                                const dataRev = new Date(dataBase);
-                                dataRev.setDate(dataRev.getDate() + diasRev);
-                                
-                                if (dataRev.toDateString() === data.toDateString() && !t.revisoes[idx]) {
-                                    revisoesDia++;
+                            const base = new Date(t.data); base.setHours(0,0,0,0);
+                            REVISOES.forEach((dias, idx) => {
+                                const rev = new Date(base); rev.setDate(rev.getDate() + dias);
+                                if (rev.toDateString() === data.toDateString() && !t.revisoes[idx]) {
+                                    count++;
                                     tipos.push(NOMES_REV[idx]);
                                 }
                             });
                         }
-                    });
-                });
-                
-                if (revisoesDia > 0) {
-                    const tiposUnicos = [...new Set(tipos)].join(', ');
-                    html += `
-                        <div class="flex items-center gap-4 p-2 bg-gray-800 rounded">
-                            <div class="w-16 text-sm">+${dias}d</div>
-                            <div class="flex-1">
-                                <div class="font-medium">${dataStr}</div>
-                                <div class="text-xs text-gray-500">${revisoesDia} revisões (${tiposUnicos})</div>
-                            </div>
-                        </div>
-                    `;
+                    }));
+                    if (count > 0) {
+                        const tiposUnicos = [...new Set(tipos)].join(', ');
+                        timeline += `<div style="display: flex; gap: var(--space-sm); padding: var(--space-xs); border-bottom: 1px solid var(--border-light); font-size: 0.8rem;">
+                            <span style="color: var(--accent-tertiary); font-weight: 600; min-width: 35px;">+${d}d</span>
+                            <span style="min-width: 85px;">${data.toLocaleDateString()}</span>
+                            <span style="color: var(--text-tertiary);">${count} revisões (${tiposUnicos})</span>
+                        </div>`;
+                    }
                 }
+                document.getElementById('timelineRevisoes').innerHTML = timeline || '<p style="color: var(--text-tertiary); padding: var(--space-sm); font-size: 0.9rem;">Nenhuma revisão programada</p>';
             }
-            
-            if (!html) html = '<p class="text-gray-500">Nenhuma revisão programada para os próximos 30 dias</p>';
-            timeline.innerHTML = html;
-        }
+        };
 
         function abrirModal(titulo, conteudo) {
             document.getElementById('modalTitulo').textContent = titulo;
@@ -1829,30 +2241,29 @@
             document.getElementById('modal').style.display = 'flex';
         }
 
-        window.fecharModal = function() {
-            document.getElementById('modal').style.display = 'none';
-        };
+        window.fecharModal = () => document.getElementById('modal').style.display = 'none';
 
         function salvarDados() {
-            localStorage.setItem('neuroai_dados_tecconcursos', JSON.stringify(appData));
-            salvarDadosNuvem();
+            const dadosCompletos = {
+                data: appData,
+                meta: metaSemanal,
+                diasProva: diasProva
+            };
+            localStorage.setItem('neuroai_dados_completo_v7', JSON.stringify(dadosCompletos));
+            if (usuarioAtual) {
+                db.collection('usuarios').doc(usuarioAtual.uid).set({ dados: appData, ultimaAtualizacao: new Date().toISOString() });
+            }
         }
 
         function atualizarTudo() {
             atualizarDashboard();
-            desenharTabela();
-            atualizarMetas();
+            if (document.getElementById('estudosView').style.display !== 'none') desenharTabela();
+            if (document.getElementById('metasView').style.display !== 'none') atualizarMetas();
         }
 
         // ========== INICIALIZAÇÃO ==========
         carregarDados();
-
-        window.onclick = function(event) {
-            const modal = document.getElementById('modal');
-            if (event.target === modal) {
-                fecharModal();
-            }
-        };
+        window.onclick = e => { if (e.target === document.getElementById('modal')) fecharModal(); };
     </script>
 </body>
 </html>
